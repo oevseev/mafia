@@ -1,0 +1,28 @@
+extends base
+
+block vars
+  - var title = "Мафия"
+
+block content
+  h1= "Мафия"
+  h2= "Комната " + roomID
+
+  script(src="/libs/cookies.js")
+  script(src="/libs/jquery-2.1.3.js")
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    socket = io.connect();
+
+    socket.on('roomIsSealed', function () {
+      $('body').append($('<p>').text("Игра уже началась."));
+    });
+    socket.on('initRoomInfo', function (data) {
+      $('body').append($('<p>').text(data.toString()));
+    });
+
+    socket.emit('ackRoom', {
+      roomID: '#{roomID}',
+      playerID: Cookies('playerID'),
+      playerName: Cookies('playerName')
+    });
