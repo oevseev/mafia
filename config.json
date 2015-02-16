@@ -8,5 +8,8 @@
     "debug": true,
 
     // Имя игрока по умолчанию
-    "defaultName": "Anon"
+    "defaultName": "Anon",
+
+    // Время существования неактивной комнаты (в секундах)
+    "inactiveRoomTimeout": 300
 }

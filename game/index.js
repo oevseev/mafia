@@ -45,9 +45,12 @@ exports.clientConnection = function (socket) {
     var playerName = 'playerName' in data ? data.playerName :
       config.defaultName;
 
+    // Подключается ли игрок в первый раз
+    var isFirstConnection = false;
+
     // Если игрока нет в комнате
     if (!(playerID in roomManager.rooms[roomID].clients) && roomManager.
-      rooms[roomID].sealed)  // и комната запечатана
+      rooms[roomID].isSealed)  // и комната запечатана
     {
       // Отправляем сообщение о том, что игра уже началась
       socket.emit('roomIsSealed');
@@ -58,24 +61,33 @@ exports.clientConnection = function (socket) {
     // Если игрока нет в комнате, но комната еще не запечатана
     if (!(playerID in roomManager.rooms[roomID].clients))  
     {
+      var isFirstConnection = true;
       // Добавляем игрока в комнату
       roomManager.rooms[roomID].connect(playerID, playerName);
       // Оповещаем всех игроков о присоединении нового игрока
-      socket.broadcast.to(roomID).emit('newPlayerConnection', playerName);
+      socket.broadcast.to(roomID).emit('newPlayer', playerName);
     }
 
     // Подключаем клиента к соответствующей комнате Socket.IO
     socket.join(roomID);
     // Отправляем игроку информацию о комнате
-    socket.emit('initRoomInfo', roomManager.rooms[roomID].getInfo());
+    var roomInfo = {
+      isFirstConnection: isFirstConnection,
+      canStartGame: !roomManager.rooms[roomID].isSealed && (playerID ===
+        roomManager.rooms[data.roomID].owner.id),
+      playerList: roomManager.rooms[roomID].getPlayerList()
+    };
+    socket.emit('initRoomInfo', roomInfo);
   });
 
   // Начало игры
   socket.on('startGame', function onStartGame(data) {
     // Если игрок — владелец комнаты
-    if (data.playerID === roomManager.rooms[data.roomID].owner) {
+    if (data.playerID === roomManager.rooms[data.roomID].owner.id) {
       // Запечатываем ее
       roomManager.rooms[data.roomID].seal();
+      // Оповещаем всех игроков о начале игры
+      io.to(data.roomID).emit('gameStarted');
     }
   });
 

@@ -12,41 +12,59 @@ var config;
 exports.config = config;
 
 // Прототип класса комнаты
-function Room(id)
+function Room(id, options)
 {
   // Идентификатор комнаты
   this.id = id;
   // Массив подключенных к комнате клиентов
   this.clients = {};
+  this.ids = [];  // ID в порядке подключения
   // Хозяин комнаты
   this.owner = null;
   // Закрыта ли комната для подключения
-  this.sealed = false;
+  this.isSealed = false;
+
+  // Опции
+  this.options = options
+
+  // Таймаут комнаты
+  // this.timeout = setTimeout(this.del, config.inactiveRoomTimeout);
 
   // Подключение к комнате.
   this.connect = function (playerID, playerName) {
-    if (!this.sealed) {
+    if (!this.isSealed) {
+
       // Добавляем игрока в список клиентов
-      this.clients[playerID] = {id: playerID, name: playerName};
+      this.clients[playerID] = {id: playerID, playerName: playerName};
+      this.ids.push(playerID);
+
+      console.log("[RM] [" + this.id + "] Игрок " + playerName + 
+        " присоединяется к игре.");
 
       // Если комната до этого была без хозяина, назначаем его.
       // Хозяин имеет исключительное право запечатывать комнату.
       if (!this.owner) {
         this.owner = this.clients[playerID];
+        console.log("[RM] [" + this.id + "] Игрок " + playerName +
+          " становится хозяином комнаты.");
       }
-
-      console.log("[RM] [" + this.id + "] Игрок " + playerName + 
-        " присоединяется к игре.");
     }
   };
+
+  /*
+  this.del = function () {
+    delete rooms[this.id];
+    console.log("[RM] Комната " + this.id + " удалена.");
+  }
+  */
 
   // Запечатывание комнаты.
   // В запечатанную комнату нельзя будет подключиться, а любая попытка
   // подключения будет игнорироваться.
   this.seal = function () {
-    if (!this.sealed)
+    if (!this.isSealed)
     {
-      this.sealed = true;
+      this.isSealed = true;
       // Удаляем комнату из списка доступных для поиска
       pending.splice(pending.indexOf(this), 1);
 
@@ -54,9 +72,10 @@ function Room(id)
     }
   };
 
-  // Получение публичной информации о комнате
-  this.getInfo = function (playerID) {
-    return "OK";
+  // Получение списка игроков
+  this.getPlayerList = function () {
+    var clients = this.clients;
+    return this.ids.map(function (id) { return clients[id].playerName; });
   };
 }
 
@@ -81,9 +100,15 @@ exports.newRoomID = function () {
     id += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  rooms[id] = new Room(id);
+  rooms[id] = new Room(id, options);
   pending.push(id);  // Добавление комнаты в список ожидающих начала
 
   console.log("[RM] Создана комната /id/" + id + "/");
   return id;
+};
+
+/// ВРЕМЕННО
+
+options = {maxPlayers: 20, mafiaCoeff: 4, dayTimeout: 60,
+  nightTimeout: 30, detectiveTimeout: 20
 };
