@@ -83,9 +83,9 @@ function Room(id, options)
 
   // Начало игры.
   // Начать игру можно лишь только тогда, когда комната запечатана.
-  this.startGame = function () {
+  this.startGame = function (callback) {
     if (!this.isSealed) { return; }
-    gameManager.newGame(this);
+    gameManager.newGame(this, callback);
   }
 
   // Получение списка игроков (поименно в порядке подключения)

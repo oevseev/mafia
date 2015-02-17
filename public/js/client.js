@@ -23,7 +23,7 @@ socket.on('gameStarted', function () {
   $('.start-game').remove();
 });
 socket.on('chatMessage', function (data) {
-  $('#chat').prepend($('<li>').html("<b>" + userData.playerName + ":</b> " + data.message));
+  $('#chat').prepend($('<li>').html("<b>" + data.playerName + ":</b> " + data.message));
 });
 
 $('form').submit(function () {

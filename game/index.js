@@ -98,7 +98,7 @@ exports.clientConnection = function (socket) {
     if (data.playerID === roomManager.rooms[data.roomID].owner.id) {
       // Запечатываем ее и начинаем игру
       roomManager.rooms[data.roomID].seal();
-      roomManager.rooms[data.roomID].startGame();
+      roomManager.rooms[data.roomID].startGame(function () {});
       // Оповещаем всех игроков о начале игры
       io.to(data.roomID).emit('gameStarted');
     }
