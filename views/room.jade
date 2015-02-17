@@ -8,37 +8,21 @@ block content
   h2= "Комната " + roomID
 
   ul#players
+  hr
+
+  form(action="javascript:void(0);")
+    input#msg
+    input(type="submit", value="Отправить")
+  ul#chat
 
   script(src="/libs/cookies.js")
   script(src="/libs/jquery-2.1.3.js")
-
   script(src="/socket.io/socket.io.js")
+
   script.
     var userData = {
       roomID: '#{roomID}',
       playerID: Cookies('playerID'),
       playerName: Cookies('playerName')
     }
-
-    socket = io.connect();
-
-    socket.on('roomIsSealed', function () {
-      $('body').append($('<p>').text("Игра уже началась."));
-    });
-    socket.on('initRoomInfo', function (data) {
-      for (var i = 0; i < data.playerList.length; i++) {
-        $('#players').append($('<li>').text(data.playerList[i]));
-      }
-      if (data.canStartGame) {
-        $('<a href="javascript:void(0)" class="start-game">').text("Начать игру").insertAfter('h2');
-        $('.start-game').click(function () { socket.emit('startGame', userData); });
-      }
-    });
-    socket.on('newPlayer', function (playerName) {
-      $('#players').append($('<li>').text(playerName));
-    });
-    socket.on('gameStarted', function () {
-      $('h2').text($('h2').text() + " — игра началась");
-    });
-
-    socket.emit('ackRoom', userData);
+  script(src="/js/client.js")

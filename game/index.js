@@ -1,7 +1,6 @@
 var uuid = require('node-uuid');
 
-// Движок и менеджер комнат
-var core = require('./core');
+// Менеджер комнат
 var roomManager = require('./rooms');
 
 // Главный объект Socket.IO
@@ -21,7 +20,18 @@ exports.useIO = function (_io, _config) {
 // рендера ниже); вся логика игры так или иначе связана с этой функцией.
 exports.clientConnection = function (socket) {
   if (config.debug) {
-    var clientIP = socket.request.connection.remoteAddress;
+    var clientIP;
+
+    var forwarded = socket.request.headers['x-forwarded-for'];
+    if (forwarded) {
+      // Соединение через Heroku (или другую систему рутинга)
+      var forwardedIPs = forwarded.split(',');
+      clientIP = list[list.length-1];
+    } else {
+      // Обычное соединение
+      clientIP = socket.request.connection.remoteAddress;
+   }
+
     console.log("[IO] Соединение с клиентом " + clientIP);
   }
 
@@ -75,7 +85,8 @@ exports.clientConnection = function (socket) {
       isFirstConnection: isFirstConnection,
       canStartGame: !roomManager.rooms[roomID].isSealed && (playerID ===
         roomManager.rooms[data.roomID].owner.id),
-      playerList: roomManager.rooms[roomID].getPlayerList()
+      playerList: roomManager.rooms[roomID].getPlayerList(),
+      gameInfo: roomManager.rooms[roomID].getGameInfo()
     };
     socket.emit('initRoomInfo', roomInfo);
   });
@@ -84,8 +95,9 @@ exports.clientConnection = function (socket) {
   socket.on('startGame', function onStartGame(data) {
     // Если игрок — владелец комнаты
     if (data.playerID === roomManager.rooms[data.roomID].owner.id) {
-      // Запечатываем ее
+      // Запечатываем ее и начинаем игру
       roomManager.rooms[data.roomID].seal();
+      roomManager.rooms[data.roomID].startGame();
       // Оповещаем всех игроков о начале игры
       io.to(data.roomID).emit('gameStarted');
     }
@@ -99,9 +111,10 @@ exports.clientConnection = function (socket) {
     // Здесь должно обрабатываться голосование игрока.
   });
 
+  // Сообщение чата.
+  // Чат перекрывается ночью для мирных жителей.
   socket.on('chatMessage', function onChatMessage(data) {
-    // Здесь должно обрабатываться сообщение в чат и его ретрансляция другим
-    // игрокам.
+    socket.broadcast.to(data.roomID).emit('chatMessage', data);
   });
 };
 

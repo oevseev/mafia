@@ -1,7 +1,7 @@
 var ID_LENGTH = 8;
 
 // Движок игры
-var core = require('./core');
+var gameManager = require('./core');
 
 // Массив данных комнат
 var rooms = {};
@@ -37,25 +37,30 @@ function Room(id, options)
 
   // Подключение к комнате.
   this.connect = function (playerID, playerName) {
-    if (!this.isSealed) {
+    if (this.isSealed) { return; }
 
-      // Добавляем игрока в список клиентов
-      this.clients[playerID] = {id: playerID, playerName: playerName};
-      this.ids.push(playerID);
+    // Добавляем игрока в список клиентов
+    this.clients[playerID] = {id: playerID, playerName: playerName};
+    this.ids.push(playerID);
 
-      console.log("[RM] [" + this.id + "] Игрок " + playerName + 
-        " присоединяется к игре.");
+    console.log("[RM] [" + this.id + "] Игрок " + playerName + 
+      " присоединяется к игре.");
 
-      // Если комната до этого была без хозяина, назначаем его.
-      // Хозяин имеет исключительное право запечатывать комнату.
-      if (!this.owner) {
-        this.owner = this.clients[playerID];
-        console.log("[RM] [" + this.id + "] Игрок " + playerName +
-          " становится хозяином комнаты.");
-      }
+    // Если число игроков превышает допустимое, запечатываем комнату.
+    if (this.ids.length >= this.options.maxPlayers) {
+      this.seal();
+    }
+
+    // Если комната до этого была без хозяина, назначаем его.
+    // Хозяин имеет исключительное право запечатывать комнату.
+    if (!this.owner) {
+      this.owner = this.clients[playerID];
+      console.log("[RM] [" + this.id + "] Игрок " + playerName +
+        " становится хозяином комнаты.");
     }
   };
 
+  // Удаление комнаты
   /*
   this.del = function () {
     delete rooms[this.id];
@@ -67,21 +72,33 @@ function Room(id, options)
   // В запечатанную комнату нельзя будет подключиться, а любая попытка
   // подключения будет игнорироваться.
   this.seal = function () {
-    if (!this.isSealed)
-    {
-      this.isSealed = true;
-      // Удаляем комнату из списка доступных для поиска
-      pending.splice(pending.indexOf(this), 1);
+    if (this.isSealed) { return; }
 
-      console.log("[RM] Комната /id/" + this.id + "/ запечатана.");
-    }
+    this.isSealed = true;
+    // Удаляем комнату из списка доступных для поиска
+    pending.splice(pending.indexOf(this), 1);
+
+    console.log("[RM] Комната /id/" + this.id + "/ запечатана.");
   };
 
-  // Получение списка игроков
+  // Начало игры.
+  // Начать игру можно лишь только тогда, когда комната запечатана.
+  this.startGame = function () {
+    if (!this.isSealed) { return; }
+    gameManager.newGame(this);
+  }
+
+  // Получение списка игроков (поименно в порядке подключения)
   this.getPlayerList = function () {
     var clients = this.clients;
     return this.ids.map(function (id) { return clients[id].playerName; });
   };
+
+  // Получение информации об игре
+  this.getGameInfo = function () {
+    if (this.game) { return this.game.getInfo(); }
+    return;
+  }
 }
 
 // Функция поиска комнаты.
@@ -114,6 +131,6 @@ exports.newRoomID = function () {
 
 /// ВРЕМЕННО
 
-options = {maxPlayers: 20, mafiaCoeff: 4, dayTimeout: 60,
+options = {maxPlayers: 2, mafiaCoeff: 4, dayTimeout: 60,
   nightTimeout: 30, detectiveTimeout: 20
 };
