@@ -1,5 +1,8 @@
 var ID_LENGTH = 8;
 
+// Движок игры
+var core = require('./core');
+
 // Массив данных комнат
 var rooms = {};
 exports.rooms = rooms;
@@ -24,6 +27,8 @@ function Room(id, options)
   // Закрыта ли комната для подключения
   this.isSealed = false;
 
+  // Объект игры
+  this.game = null;
   // Опции
   this.options = options
 

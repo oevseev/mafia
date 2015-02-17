@@ -30,7 +30,7 @@ block content
         $('#players').append($('<li>').text(data.playerList[i]));
       }
       if (data.canStartGame) {
-        $('<a href="#" class="start-game">').text("Начать игру").insertAfter('h2');
+        $('<a href="javascript:void(0)" class="start-game">').text("Начать игру").insertAfter('h2');
         $('.start-game').click(function () { socket.emit('startGame', userData); });
       }
     });
