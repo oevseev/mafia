@@ -27,8 +27,9 @@ socket.on('chatMessage', function (data) {
 });
 
 $('form').submit(function () {
-  socket.emit('chatMessage', {roomID: userData.roomID, playerName: userData.playerName, message: $('#msg').val()});
-  $('#chat').prepend($('<li>').html("<b>" + userData.playerName + ":</b> " + $('#msg').val()));
+  var playerName = (userData.playerName !== undefined) ? userData.playerName : "Anon";
+  socket.emit('chatMessage', {userData: userData, message: $('#msg').val()});
+  $('#chat').prepend($('<li>').html("<b>" + playerName + ":</b> " + $('#msg').val()));
   $('#msg').val('');
 });
 

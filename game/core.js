@@ -7,7 +7,7 @@ function Game(room, callback) {
 
   this.getInfo = function () {
     return {};
-  }
+  };
 }
 
 // Создание игры.

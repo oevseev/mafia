@@ -30,7 +30,7 @@ function Room(id, options)
   // Объект игры
   this.game = null;
   // Опции
-  this.options = options
+  this.options = options;
 
   // Таймаут комнаты
   // this.timeout = setTimeout(this.del, config.inactiveRoomTimeout);

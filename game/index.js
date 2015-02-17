@@ -43,10 +43,10 @@ exports.clientConnection = function (socket) {
 
   // Кнопки главного меню
   socket.on('findRoom', function onFindRoom() {
-     socket.emit('roomIDReturned', roomManager.findRoomID());
+    socket.emit('roomIDReturned', roomManager.findRoomID());
   });
   socket.on('newRoom', function onNewRoom() {
-     socket.emit('roomIDReturned', roomManager.newRoomID());
+    socket.emit('roomIDReturned', roomManager.newRoomID());
   });
 
   // Подтверждение комнаты
@@ -104,10 +104,12 @@ exports.clientConnection = function (socket) {
     }
   });
 
+  // Выход из игры
   socket.on('leaveGame', function onLeaveGame(data) {
     // Здесь должен обрабатываться сигнал о выходе из игры.
   });
 
+  // Голосование
   socket.on('playerVote', function onPlayerVote(data) {
     // Здесь должно обрабатываться голосование игрока.
   });
@@ -115,7 +117,15 @@ exports.clientConnection = function (socket) {
   // Сообщение чата.
   // Чат перекрывается ночью для мирных жителей.
   socket.on('chatMessage', function onChatMessage(data) {
-    socket.broadcast.to(data.roomID).emit('chatMessage', data);
+    if (data.userData.playerID in roomManager.
+      rooms[data.userData.roomID].clients)
+    {
+      var playerName = 'playerName' in data.userData ?
+        data.userData.playerName : config.defaultName;
+      socket.broadcast.to(data.userData.roomID).emit('chatMessage', {
+        playerName: playerName, message: data.message
+      });
+    }
   });
 };
 
@@ -145,6 +155,6 @@ exports.displayRoom = function (req, res, roomID) {
     res.render('room', {roomID: roomID});
   } else {
     res.status(404);
-    res.render('404', {message: "Комнаты не существует."})
+    res.render('404', {message: "Комнаты не существует."});
   }
 }
