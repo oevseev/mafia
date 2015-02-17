@@ -21,16 +21,17 @@ exports.useIO = function (_io, _config) {
 exports.clientConnection = function (socket) {
   if (config.debug) {
     var clientIP;
-
     var forwarded = socket.request.headers['x-forwarded-for'];
+
     if (forwarded) {
       // Соединение через Heroku (или другую систему рутинга)
       var forwardedIPs = forwarded.split(',');
-      clientIP = list[list.length-1];
-    } else {
+      clientIP = forwardedIPs[0];
+    }
+    if (!clientIP) {
       // Обычное соединение
       clientIP = socket.request.connection.remoteAddress;
-   }
+    }
 
     console.log("[IO] Соединение с клиентом " + clientIP);
   }
