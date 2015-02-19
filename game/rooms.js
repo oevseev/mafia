@@ -10,9 +10,11 @@ exports.rooms = rooms;
 // Комнаты, ожидающие подключения игроков
 var pending = [];
 
-// Файл конфигурации
-var config; 
-exports.config = config;
+// Удаление комнаты
+function delRoom(room_id) {
+  delete rooms[room_id];
+  console.log("[RM] Комната /id/" + room_id + "/ удалена.");
+}
 
 // Прототип класса комнаты
 function Room(id, options)
@@ -33,7 +35,7 @@ function Room(id, options)
   this.options = options;
 
   // Таймаут комнаты
-  // this.timeout = setTimeout(this.del, config.inactiveRoomTimeout);
+  this.timeout = null;
 
   // Подключение к комнате.
   this.connect = function (playerID, playerName) {
@@ -60,13 +62,11 @@ function Room(id, options)
     }
   };
 
-  // Удаление комнаты
-  /*
-  this.del = function () {
-    delete rooms[this.id];
-    console.log("[RM] Комната " + this.id + " удалена.");
+  // Установить таймаут на удаление комнаты
+  this.setRoomTimeout = function (timeout) {
+    if (this.timeout) { clearTimeout(this.timeout); }
+    this.timeout = setTimeout(delRoom, timeout * 1000, this.id);
   }
-  */
 
   // Запечатывание комнаты.
   // В запечатанную комнату нельзя будет подключиться, а любая попытка

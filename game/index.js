@@ -12,7 +12,6 @@ var config;
 exports.useIO = function (_io, _config) {
   io = _io;
   config = _config;
-  roomManager.config = config;
 };
 
 // Главная функция обработки событий сокета.
@@ -46,14 +45,17 @@ exports.clientConnection = function (socket) {
     socket.emit('roomIDReturned', roomManager.findRoomID());
   });
   socket.on('newRoom', function onNewRoom() {
-    socket.emit('roomIDReturned', roomManager.newRoomID());
+    var newRoomID = roomManager.newRoomID();
+    socket.emit('roomIDReturned', newRoomID);
+    // Устанавливаем лимит времени на существование комнаты
+    roomManager.rooms[newRoomID].setRoomTimeout(config.newRoomTimeout);
   });
 
   // Подтверждение комнаты
-  socket.on('ackRoom', function onAckRoom(data) {
-    var roomID = data.roomID;
-    var playerID = data.playerID;
-    var playerName = 'playerName' in data ? data.playerName :
+  socket.on('ackRoom', function onAckRoom(userData) {
+    var roomID = userData.roomID;
+    var playerID = userData.playerID;
+    var playerName = 'playerName' in userData ? userData.playerName :
       config.defaultName;
 
     // Подключается ли игрок в первый раз
@@ -85,7 +87,7 @@ exports.clientConnection = function (socket) {
     var roomInfo = {
       isFirstConnection: isFirstConnection,
       canStartGame: !roomManager.rooms[roomID].isSealed && (playerID ===
-        roomManager.rooms[data.roomID].owner.id),
+        roomManager.rooms[roomID].owner.id),
       playerList: roomManager.rooms[roomID].getPlayerList(),
       gameInfo: roomManager.rooms[roomID].getGameInfo()
     };
@@ -93,14 +95,17 @@ exports.clientConnection = function (socket) {
   });
 
   // Начало игры
-  socket.on('startGame', function onStartGame(data) {
+  socket.on('startGame', function onStartGame(userData) {
     // Если игрок — владелец комнаты
-    if (data.playerID === roomManager.rooms[data.roomID].owner.id) {
+    if (userData.playerID === roomManager.rooms[userData.roomID].owner.id) {
       // Запечатываем ее и начинаем игру
-      roomManager.rooms[data.roomID].seal();
-      roomManager.rooms[data.roomID].startGame(function () {});
+      roomManager.rooms[userData.roomID].seal();
+      roomManager.rooms[userData.roomID].startGame(function () {});
       // Оповещаем всех игроков о начале игры
-      io.to(data.roomID).emit('gameStarted');
+      io.to(userData.roomID).emit('gameStarted');
+      // Устанавливаем таймаут для неактивной комнаты
+      roomManager.rooms[userData.roomID].setRoomTimeout(
+        config.inactiveRoomTimeout);
     }
   });
 
@@ -112,6 +117,8 @@ exports.clientConnection = function (socket) {
   // Голосование
   socket.on('playerVote', function onPlayerVote(data) {
     // Здесь должно обрабатываться голосование игрока.
+    roomManager.rooms[data.userData.roomID].setRoomTimeout(
+      config.inactiveRoomTimeout);
   });
 
   // Сообщение чата.
@@ -125,6 +132,8 @@ exports.clientConnection = function (socket) {
       socket.broadcast.to(data.userData.roomID).emit('chatMessage', {
         playerName: playerName, message: data.message
       });
+      roomManager.rooms[data.userData.roomID].setRoomTimeout(
+        config.inactiveRoomTimeout);
     }
   });
 };

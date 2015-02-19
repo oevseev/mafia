@@ -2,8 +2,10 @@
 function Game(room, callback) {
   // Комната, которой принадлежит игра
   this.room = room;
-  // Коллбэк, вызываемый при обновлении состояния игры
-  this.callback = callback;
+
+  this.start = function (callback) {
+    console.log("[GAME] [" + this.room.id + "] Игра началась.");
+  };
 
   this.getInfo = function () {
     return {};
@@ -13,7 +15,7 @@ function Game(room, callback) {
 // Создание игры.
 exports.newGame = function (room, callback) {
   if (!room.game) {
-    console.log("[GAME] [" + room.id + "] Игра началась.");
-    room.game = new Game(room, callback);
+    room.game = new Game(room);
+    room.game.start(callback);
   }
 }
