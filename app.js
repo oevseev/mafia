@@ -9,7 +9,7 @@ var serveStatic = require('serve-static');
 var serveFavicon = require('serve-favicon');
 
 // Локальные зависимости
-var game = require('./mafia');
+var mafia = require('./mafia');
 var routes = require('./routes');
 
 // Загрузка файла конфигурации.
@@ -41,5 +41,5 @@ var server = app.listen(port, function onStart() {
 // Инициализация Socket.IO.
 // При подключении клиента передаем управление модулю игры.
 var io = SocketIO.listen(server);
-game.useIO(io, config);
-io.on('connection', game.clientConnection);
+mafia.useIO(io, config);
+io.on('connection', mafia.clientConnection);
