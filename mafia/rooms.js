@@ -1,7 +1,7 @@
 var ID_LENGTH = 8;
 
 // Движок игры
-var gameManager = require('./core');
+var gameManager = require('./mafia');
 
 // Массив данных комнат
 var rooms = {};

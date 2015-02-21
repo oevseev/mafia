@@ -9,7 +9,7 @@ var serveStatic = require('serve-static');
 var serveFavicon = require('serve-favicon');
 
 // Локальные зависимости
-var game = require('./game');
+var game = require('./mafia');
 var routes = require('./routes');
 
 // Загрузка файла конфигурации.
