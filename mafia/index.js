@@ -131,15 +131,6 @@ exports.clientConnection = function (socket) {
     // Здесь должен обрабатываться сигнал о выходе из игры.
   });
 
-  socket.on('requestRole', function onRequestRole(userData) {
-    var roomID = userData.roomID;
-    var playerID = userData.playerID;
-
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
-
-    // Здесь должен обрабатываться запрос роли пользователя
-  })
-
   // Голосование
   socket.on('playerVote', function onPlayerVote(data) {
     var roomID = data.userData.roomID;

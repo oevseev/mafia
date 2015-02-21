@@ -3,15 +3,15 @@ var path = require('path');
 var express = require('express');
 var router = express.Router();
 
-var game = require('./game');
+var mafia = require('./mafia');
 
 // Кнопки в главном меню игры
-router.get('/find', game.findRoom);
-router.get('/new', game.newRoom);
+router.get('/find', mafia.findRoom);
+router.get('/new', mafia.newRoom);
 
 // Комната с выбранным ID
 router.get(/^\/id\/([a-zA-Z0-9]{8})$/, function (req, res) {
-  game.displayRoom(req, res, req.params[0]);
+  mafia.displayRoom(req, res, req.params[0]);
 });
 
 // Ошибка 404

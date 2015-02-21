@@ -25,6 +25,9 @@ socket.on('gameStarted', function () {
 socket.on('chatMessage', function (data) {
   $('#chat').prepend($('<li>').html("<b>" + data.playerName + ":</b> " + data.message));
 });
+socket.on('roleNotify', function (role) {
+  alert("Вы — " + role);
+})
 
 $('form').submit(function () {
   var playerName = (userData.playerName !== undefined) ? userData.playerName : "Anon";
