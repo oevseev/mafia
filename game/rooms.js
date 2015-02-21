@@ -38,12 +38,13 @@ function Room(id, options)
   this.timeout = null;
 
   // Подключение к комнате.
-  this.connect = function (playerID, playerName) {
+  this.connect = function (playerID, playerName, socket) {
     if (this.isSealed) { return; }
 
     // Добавляем игрока в список клиентов
-    this.clients[playerID] = {id: playerID, playerName: playerName};
-    this.ids.push(playerID);
+    this.clients[playerID] = {id: playerID, playerName: playerName,
+      socket: socket};
+    if (!(playerID in this.ids)) { this.ids.push(playerID); }
 
     console.log("[RM] [" + this.id + "] Игрок " + playerName + 
       " присоединяется к игре.");
@@ -114,7 +115,7 @@ exports.findRoomID = function () {
 
 // Функция создания комнаты.
 // ID комнаты генерируется случайным путем из цифр и букв латинского алфавита.
-exports.newRoomID = function () {
+exports.newRoomID = function (options) {
   var id = "";
   var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -127,10 +128,4 @@ exports.newRoomID = function () {
 
   console.log("[RM] Создана комната /id/" + id + "/");
   return id;
-};
-
-/// ВРЕМЕННО
-
-options = {maxPlayers: 2, mafiaCoeff: 4, dayTimeout: 60,
-  nightTimeout: 30, detectiveTimeout: 20
 };

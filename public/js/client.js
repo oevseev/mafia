@@ -3,7 +3,7 @@ socket = io.connect();
 socket.on('roomIsSealed', function () {
   $('body').append($('<p>').text("Игра уже началась."));
 });
-socket.on('initRoomInfo', function (data) {
+socket.on('roomInfo', function (data) {
   for (var i = 0; i < data.playerList.length; i++) {
     $('#players').append($('<li>').text(data.playerList[i]));
   }
