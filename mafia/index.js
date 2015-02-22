@@ -9,7 +9,7 @@ var io;
 // Файл конфигурации (config.json)
 var config;
 
-exports.useIO = function (_io, _config) {
+exports.useIO = function(_io, _config) {
   io = _io;
   config = _config;
 };
@@ -17,7 +17,7 @@ exports.useIO = function (_io, _config) {
 // Главная функция обработки событий сокета.
 // Это — единственная функция модуля игры, доступная извне (не считая функций
 // рендера ниже); вся логика игры так или иначе связана с этой функцией.
-exports.clientConnection = function (socket) {
+exports.clientConnection = function(socket) {
   if (config.debug) {
     var clientIP;
     var forwarded = socket.request.headers['x-forwarded-for'];
@@ -42,13 +42,14 @@ exports.clientConnection = function (socket) {
 
   // Кнопки главного меню
   socket.on('findRoom', function onFindRoom() {
-    socket.emit('roomIDReturned', roomManager.findRoomID());
+    var roomID = roomManager.findRoomID(config.defaultOptions,
+      config.newRoomTimeout);
+    socket.emit('roomIDReturned', roomID);
   });
   socket.on('newRoom', function onNewRoom() {
-    var newRoomID = roomManager.newRoomID(config.defaultOptions);
-    socket.emit('roomIDReturned', newRoomID);
-    // Устанавливаем лимит времени на существование комнаты
-    roomManager.rooms[newRoomID].setRoomTimeout(config.newRoomTimeout);
+    var roomID = roomManager.newRoomID(config.defaultOptions,
+      config.newRoomTimeout);
+    socket.emit('roomIDReturned', roomID);
   });
 
   // Подтверждение комнаты
@@ -59,25 +60,26 @@ exports.clientConnection = function (socket) {
       config.defaultName;
 
     // Проверка на существование комнаты
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
+    if (typeof roomManager.rooms[roomID] === 'undefined') {
+      return;
+    }
 
     // Подключается ли игрок в первый раз
     var isFirstConnection = false;
 
     // Если игрока нет в комнате
-    if (!(playerID in roomManager.rooms[roomID].clients) && roomManager.
-      rooms[roomID].isSealed)  // и комната запечатана
+    if (!(playerID in roomManager.rooms[roomID].clients) && roomManager.rooms[
+        roomID].isSealed) // и комната запечатана
     {
       // Отправляем сообщение о том, что игра уже началась
       socket.emit('roomIsSealed');
       // Прерываем обработку события
       return;
     }
-    
+
     // Если игрока нет в комнате, но комната еще не запечатана
-    if (!(playerID in roomManager.rooms[roomID].clients))  
-    {
-      var isFirstConnection = true;
+    if (!(playerID in roomManager.rooms[roomID].clients)) {
+      isFirstConnection = true;
       // Добавляем игрока в комнату
       roomManager.rooms[roomID].connect(playerID, playerName, socket);
       // Оповещаем всех игроков о присоединении нового игрока
@@ -89,12 +91,15 @@ exports.clientConnection = function (socket) {
 
     // Подключаем клиента к соответствующей комнате Socket.IO
     socket.join(roomID);
+
     // Отправляем игроку информацию о комнате
     var roomInfo = {
       isFirstConnection: isFirstConnection,
       canStartGame: !roomManager.rooms[roomID].isSealed && (playerID ===
         roomManager.rooms[roomID].owner.id),
       playerList: roomManager.rooms[roomID].getPlayerList(),
+      role: roomManager.rooms[roomID].game ?
+        roomManager.rooms[roomID].game.roles[playerID] : null
     };
     socket.emit('roomInfo', roomInfo);
   });
@@ -104,14 +109,16 @@ exports.clientConnection = function (socket) {
     var roomID = userData.roomID;
     var playerID = userData.playerID;
 
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
+    if (typeof roomManager.rooms[roomID] === 'undefined') {
+      return;
+    }
 
     // Если игрок — владелец комнаты
     if (playerID === roomManager.rooms[roomID].owner.id) {
       // Запечатываем ее и начинаем игру
       roomManager.rooms[roomID].seal();
-      roomManager.rooms[roomID].startGame(function onPhaseChange(phase) {
-        io.to(roomID).emit('phaseChange', phase);
+      roomManager.rooms[roomID].startGame(function onUpdate(data) {
+        io.to(roomID).emit('update', data);
       });
       // Оповещаем всех игроков о начале игры
       io.to(roomID).emit('gameStarted');
@@ -126,7 +133,9 @@ exports.clientConnection = function (socket) {
     var roomID = userData.roomID;
     var playerID = userData.playerID;
 
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
+    if (typeof roomManager.rooms[roomID] === 'undefined') {
+      return;
+    }
 
     // Здесь должен обрабатываться сигнал о выходе из игры.
   });
@@ -136,7 +145,9 @@ exports.clientConnection = function (socket) {
     var roomID = data.userData.roomID;
     var playerID = data.userData.playerID;
 
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
+    if (typeof roomManager.rooms[roomID] === 'undefined') {
+      return;
+    }
 
     // Здесь должно обрабатываться голосование игрока.
 
@@ -151,13 +162,27 @@ exports.clientConnection = function (socket) {
     var playerName = 'playerName' in data.userData ? data.userData.playerName :
       config.defaultName;
 
-    if (typeof roomManager.rooms[roomID] === 'undefined') { return; }
+    if (typeof roomManager.rooms[roomID] === 'undefined') {
+      return;
+    }
 
-    if (playerID in roomManager.rooms[roomID].clients)
-    {
-      socket.broadcast.to(roomID).emit('chatMessage', {
-        playerName: playerName, message: data.message
-      });
+    if (playerID in roomManager.rooms[roomID].clients) {
+      if (roomManager.rooms[roomID].game && !roomManager.rooms[roomID].isDay) {
+        // Локальный чат мафии (ночью)
+        if (roomManager.rooms[roomID].game.roles[playerID] == 'mafia') {
+          socket.broadcast.to(roomID + '_m').emit('chatMessage', {
+            playerName: playerName,
+            message: data.message
+          });
+        }
+      } else {
+        // Всеобщий чат (днем)
+        socket.broadcast.to(roomID).emit('chatMessage', {
+          playerName: playerName,
+          message: data.message
+        });
+      }
+
       // В зависимости от того, начата игра или нет, выбираем таймаут
       var timeout = roomManager.rooms[roomID].game ?
         config.inactiveRoomTimeout : config.newRoomTimeout;
@@ -171,27 +196,35 @@ exports.clientConnection = function (socket) {
 // показалось наиболее верным (и эстетически приятным) решением.
 
 // Страница загрузки при поиске
-exports.findRoom = function (req, res) {
-  res.render('loading', {eventName: 'findRoom',
-    message: "Идет поиск игры."});
+exports.findRoom = function(req, res) {
+  res.render('loading', {
+    eventName: 'findRoom',
+    message: "Идет поиск игры."
+  });
 };
 
 // Страница загрузки при создании
-exports.newRoom = function (req, res) {
-  res.render('loading', {eventName: 'newRoom',
-    message: "Идет создание комнаты."});
+exports.newRoom = function(req, res) {
+  res.render('loading', {
+    eventName: 'newRoom',
+    message: "Идет создание комнаты."
+  });
 };
 
 // Рендер шаблона комнаты
-exports.displayRoom = function (req, res, roomID) {
+exports.displayRoom = function(req, res, roomID) {
   if (roomID in roomManager.rooms) {
     // Назначение пользователю уникального идентификатора
     if (!('playerID' in req.cookies)) {
       res.cookie('playerID', uuid.v4());
     }
-    res.render('room', {roomID: roomID});
+    res.render('room', {
+      roomID: roomID
+    });
   } else {
     res.status(404);
-    res.render('404', {message: "Комнаты не существует."});
+    res.render('404', {
+      message: "Комнаты не существует."
+    });
   }
-}
+};

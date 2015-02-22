@@ -23,10 +23,14 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-if (config.debug) { app.use(morgan('short')); }
+if (config.debug) {
+  app.use(morgan('short'));
+}
 app.use(cookieParser());
 app.use(serveFavicon(path.join(__dirname, 'public/favicon.ico')));
-app.use(serveStatic('public', {'index': ['index.html', 'index.htm']}));
+app.use(serveStatic('public', {
+  'index': ['index.html', 'index.htm']
+}));
 app.use('/', routes);
 
 // Запуск сервера, слушающего порт, указанный в config.json
