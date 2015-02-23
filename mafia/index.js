@@ -9,10 +9,21 @@ var io;
 // Файл конфигурации (config.json)
 var config;
 
-exports.useIO = function (_io, _config) {
+exports.useIOAndConfig = function (_io, _config) {
   io = _io;
   config = _config;
 };
+
+// Выполняет callback только в том случае, если игрок уже подтвердил вход в
+// комнату. В противном случае callback игнорируется.
+function assertAck(socket, callback) {
+  return function (data) {
+    if (typeof socket.userData === 'undefined') {
+      return;
+    }
+    callback(socket.userData.room, socket.userData.player, data);
+  };
+}
 
 // Главная функция обработки событий сокета.
 // Это — единственная функция модуля игры, доступная извне (не считая функций
@@ -53,10 +64,10 @@ exports.clientConnection = function (socket) {
   });
 
   // Подтверждение комнаты
-  socket.on('ackRoom', function onAckRoom(userData) {
-    var room = roomManager.rooms[userData.roomID];
-    var playerID = userData.playerID;
-    var playerName = 'playerName' in userData ? userData.playerName :
+  socket.on('ackRoom', function onAckRoom(data) {
+    var room = roomManager.rooms[data.roomID];
+    var playerID = data.playerID;
+    var playerName = 'playerName' in data ? data.playerName :
       config.defaultName;
 
     // Проверка на существование комнаты
@@ -88,6 +99,12 @@ exports.clientConnection = function (socket) {
       room.clients[playerID].socket = socket;
     }
 
+    // Устанавливаем данные сессии
+    socket.userData = {
+      room: room,
+      player: room.clients[playerID]
+    };
+
     // Подключаем клиента к соответствующей комнате Socket.IO
     socket.join(room.id);
 
@@ -115,122 +132,99 @@ exports.clientConnection = function (socket) {
   });
 
   // Начало игры
-  socket.on('startGame', function onStartGame(userData) {
-    var room = roomManager.rooms[userData.roomID];
-    if (typeof room === 'undefined') {
-      return;
+  socket.on('startGame', assertAck(socket,
+    function onStartGame(room, player) {
+      // Если игрок — владелец комнаты
+      if (player.id === room.owner.id) {
+        // Запечатываем ее и начинаем игру
+        room.seal();
+        room.startGame(function onUpdate(data) {
+          io.to(room.id).emit('update', data);
+        });
+        // Оповещаем всех игроков о начале игры
+        io.to(room.id).emit('gameStarted');
+        // Устанавливаем таймаут для неактивной комнаты
+        room.setRoomTimeout(config.inactiveRoomTimeout);
+      }
     }
-
-    // Если игрок — владелец комнаты
-    if (userData.playerID === room.owner.id) {
-      // Запечатываем ее и начинаем игру
-      room.seal();
-      room.startGame(function onUpdate(data) {
-        io.to(room.id).emit('update', data);
-      });
-      // Оповещаем всех игроков о начале игры
-      io.to(room.id).emit('gameStarted');
-      // Устанавливаем таймаут для неактивной комнаты
-      room.setRoomTimeout(config.inactiveRoomTimeout);
-    }
-  });
+  ));
 
   // Выход из игры
-  socket.on('leaveGame', function onLeaveGame(userData) {
-    var room = roomManager.rooms[userData.roomID];
-    if (typeof room === 'undefined') {
-      return;
-    }
-
-    // Здесь должен обрабатываться сигнал о выходе из игры.
-  });
+  socket.on('leaveGame', assertAck(socket,
+    function onLeaveGame(room, player) {
+      // Здесь должен обрабатываться сигнал о выходе из игры.
+    }));
 
   // Голосование
-  socket.on('playerVote', function onPlayerVote(data) {
-    var room = roomManager.rooms[data.userData.roomID];
-    var playerID = data.userData.playerID;
+  socket.on('playerVote', assertAck(socket,
+    function onPlayerVote(room, player, data) {
+      if (player.id in room.clients && room.game && room.game.state.isVoting) {
+        var voteData = {
+          playerIndex: room.ids.indexOf(player.id),
+          vote: data.vote
+        };
 
-    if (typeof room === 'undefined') {
-      return;
-    }
-
-    if ((playerID in room.clients) && room.game && room.game.state.isVoting) {
-      var voteData = {
-        playerIndex: room.ids.indexOf(playerID),
-        vote: data.vote
-      };
-
-      if (room.game.state.isDay) {
-        socket.broadcast.to(room.id).emit('vote', voteData);
-      } else {
-        if (room.game.roles[playerID] === 'mafia') {
-          socket.broadcast.to(room.id + '_m').emit('vote', voteData);
+        if (room.game.state.isDay) {
+          socket.broadcast.to(room.id).emit('vote', voteData);
         } else {
-          socket.emit('voteRejected', data.voteID);
-          return;
+          if (room.game.roles[player.id] === 'mafia') {
+            socket.broadcast.to(room.id + '_m').emit('vote', voteData);
+          } else {
+            return;
+          }
         }
+
+        // Отправляем голосование на проверку
+        room.game.processVote(player.id, data.vote);
+
+        // Не даем комнате самоликвидироваться
+        room.setRoomTimeout(config.inactiveRoomTimeout);
       }
-
-      // Отправляем голосование на проверку
-      room.game.processVote(playerID, data.vote);
-
-      // Не даем комнате самоликвидироваться
-      room.setRoomTimeout(config.inactiveRoomTimeout);
     }
-
-    // Обработка голосования в случае, если оно идет
-    if (room.game.state.isVoting) {
-      room.game.processVote(data.userData.playerID, data.vote);
-      room.setRoomTimeout(config.inactiveRoomTimeout);
-    }
-  });
+  ));
 
   // Сообщение чата.
   // Чат перекрывается ночью для мирных жителей.
-  socket.on('chatMessage', function onChatMessage(data) {
-    var room = roomManager.rooms[data.userData.roomID];
-    var player = room.clients[data.userData.playerID];
+  socket.on('chatMessage', assertAck(socket,
+    function onChatMessage(room, player, data) {
+      if (player.id in room.clients) {
+        var msgData = {
+          playerName: player.playerName,
+          message: data.message
+        };
 
-    if (typeof room === 'undefined') {
-      return;
-    }
-
-    if (player.id in room.clients) {
-      var msgData = {
-        playerName: player.playerName,
-        message: data.message
-      };
-
-      if (room.game && !room.game.state.isDay) {
-        // Локальный чат мафии (ночью)
-        if (room.game.roles[player.id] === 'mafia') {
-          socket.broadcast.to(room.id + '_m').emit('chatMessage', msgData);
-          console.log("[CHAT] [" + room.id + "] [M] " + player.playerName +
-            ": " + data.message);
-        } else {
-          if ('messageID' in data) {
-            socket.emit('chatMessageRejected', data.messageID);
+        if (room.game && !room.game.state.isDay) {
+          // Локальный чат мафии (ночью)
+          if (room.game.roles[player.id] === 'mafia') {
+            socket.broadcast.to(room.id + '_m').emit('chatMessage',
+              msgData);
+            console.log("[CHAT] [" + room.id + "] [M] " + player.playerName +
+              ": " + data.message);
+          } else {
+            if ('messageID' in data) {
+              socket.emit('chatMessageRejected', data.messageID);
+            }
+            return;
           }
-          return;
+        } else {
+          // Всеобщий чат (днем)
+          socket.broadcast.to(room.id).emit('chatMessage', msgData);
+          console.log("[CHAT] [" + room.id + "] " + player.playerName +
+            ": " + data.message);
         }
-      } else {
-        // Всеобщий чат (днем)
-        socket.broadcast.to(room.id).emit('chatMessage', msgData);
-        console.log("[CHAT] [" + room.id + "] " + player.playerName + ": " +
-          data.message);
-      }
 
-      // Отправляем подтверждение
-      if ('messageID' in data) {
-        socket.emit('chatMessageConfirmed', data.messageID);
-      }
+        // Отправляем подтверждение
+        if ('messageID' in data) {
+          socket.emit('chatMessageConfirmed', data.messageID);
+        }
 
-      // В зависимости от того, начата игра или нет, выбираем таймаут
-      var timeout = room.game ? config.inactiveRoomTimeout :
-        config.newRoomTimeout;
-      room.setRoomTimeout(timeout);
+        // В зависимости от того, начата игра или нет, выбираем таймаут
+        var timeout = room.game ? config.inactiveRoomTimeout :
+          config.newRoomTimeout;
+        room.setRoomTimeout(timeout);
+      }
     }
-  });
+  ));
 };
 
 // Далее следуют функции, возвращающие клиенту отрендеренные шаблоны.

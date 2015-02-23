@@ -11,7 +11,7 @@ socket.on('roomData', function(data) {
     $('<a href="javascript:void(0)" class="start-game">').text(
       "Начать игру").insertAfter('h2');
     $('.start-game').click(function() {
-      socket.emit('startGame', userData);
+      socket.emit('startGame');
     });
   }
   if (data.gameData) {
@@ -37,7 +37,6 @@ $('form').submit(function() {
   var playerName = (userData.playerName !== undefined) ? userData.playerName :
     "Anon";
   socket.emit('chatMessage', {
-    userData: userData,
     message: $('#msg').val()
   });
   $('#chat').prepend($('<li>').html("<b>" + playerName + ":</b> " + $(

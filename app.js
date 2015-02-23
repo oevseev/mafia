@@ -45,5 +45,5 @@ var server = app.listen(port, function onStart() {
 // Инициализация Socket.IO.
 // При подключении клиента передаем управление модулю игры.
 var io = SocketIO.listen(server);
-mafia.useIO(io, config);
+mafia.useIOAndConfig(io, config);
 io.on('connection', mafia.clientConnection);
