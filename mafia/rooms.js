@@ -30,7 +30,7 @@ function Room(id, options) {
   this.timeout = null;
 
   // Подключение к комнате.
-  this.connect = function(playerID, playerName, socket) {
+  this.connect = function (playerID, playerName, socket) {
     if (this.isSealed) {
       return;
     }
@@ -62,18 +62,28 @@ function Room(id, options) {
     }
   };
 
-  // Установить таймаут на удаление комнаты
-  this.setRoomTimeout = function(timeout) {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
+  // Удаление комнаты
+  this.del = function () {
+    if (this.game) {
+      clearTimeout(this.game.timeout);
+      this.game = null;
     }
-    this.timeout = setTimeout(this.del.bind(this), timeout * 1000, this.id);
+    delete rooms[this.id];
+    console.log("[RM] Комната /id/" + this.id + "/ удалена.");
+  };
+
+  // Получение списка игроков (поименно в порядке подключения)
+  this.getPlayerList = function () {
+    var clients = this.clients;
+    return this.ids.map(function (id) {
+      return clients[id].playerName;
+    });
   };
 
   // Запечатывание комнаты.
   // В запечатанную комнату нельзя будет подключиться, а любая попытка
   // подключения будет игнорироваться.
-  this.seal = function() {
+  this.seal = function () {
     if (this.isSealed) {
       return;
     }
@@ -85,35 +95,29 @@ function Room(id, options) {
     console.log("[RM] Комната /id/" + this.id + "/ запечатана.");
   };
 
-  // Удаление комнаты
-  this.del = function() {
-    delete rooms[this.id];
-    console.log("[RM] Комната /id/" + this.id + "/ удалена.");
-  }
+  // Установить таймаут на удаление комнаты
+  this.setRoomTimeout = function (timeout) {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+    this.timeout = setTimeout(this.del.bind(this), timeout * 1000, this.id);
+  };
 
   // Начало игры.
   // Начать игру можно лишь только тогда, когда комната запечатана.
-  this.startGame = function(callback) {
+  this.startGame = function (callback) {
     if (!this.isSealed) {
       return;
     }
     gameManager.newGame(this, callback);
   }
-
-  // Получение списка игроков (поименно в порядке подключения)
-  this.getPlayerList = function() {
-    var clients = this.clients;
-    return this.ids.map(function(id) {
-      return clients[id].playerName;
-    });
-  };
 }
 
 // Функция поиска комнаты.
 // Возвращает ID комнаты из массива pending или создает новую, если массив
 // pending является пустым. Если комната не найдена, создает новую с указанными
 // параметрами.
-exports.findRoomID = function(options, timeout) {
+exports.findRoomID = function (options, timeout) {
   if (pending.length > 0) {
     return pending[Math.floor(Math.random() * pending.length)];
   } else {
@@ -123,7 +127,7 @@ exports.findRoomID = function(options, timeout) {
 
 // Функция создания комнаты.
 // ID комнаты генерируется случайным путем из цифр и букв латинского алфавита.
-exports.newRoomID = function(options, timeout) {
+exports.newRoomID = function (options, timeout) {
   var id = "";
   var chars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
