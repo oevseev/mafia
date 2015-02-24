@@ -50,7 +50,7 @@
 
     // События, касающиеся ретранслируемой информации
     socket.on('chatMessage', function onChatMessage(data) {
-      UI.addMessage(data.playerName, data.message);
+      UI.addMessage(data.playerIndex, data.message);
     });
     socket.on('playerVote', function onPlayerVote(data) {
       UI.logMessage("Игрок #" + (data.playerIndex + 1) +
@@ -81,9 +81,10 @@
     },
 
     // Добавление сообщения в чат
-    addMessage: function (playerName, message) {
+    addMessage: function (playerIndex, message) {
       var $message = $('<li>').text(" " + message);
-      $message.prepend($('<b>').text(playerName + ":"));
+      $message.prepend($('<b>').text(UI.playerList[playerIndex].playerName +
+        ":"));
       $('#chat').prepend($message);
     },
 
@@ -118,6 +119,10 @@
         if (data.elimPlayers && i in data.elimPlayers) {
           UI.setPlayerRole(i, data.elimPlayers[i]);
         }
+      }
+
+      if (ackData.elimPlayers && ackData.playerIndex in ackData.elimPlayers) {
+        $('#vote-form').remove();
       }
     },
 
@@ -175,8 +180,9 @@
         playerName: playerName
       });
       $('#players').append($('<li>').text(playerName));
-      $('#vote-player').append($('<option>').val(playerIndex).text("#" + (
-        playerIndex + 1) + " - " + playerName));
+      $('#vote-player').append($('<option>').val(playerIndex).text("#" +
+        (
+          playerIndex + 1) + " - " + playerName));
     },
 
     // Установка роли игрока
@@ -192,8 +198,7 @@
         message: $('#message').val()
       });
       // Добавляем сообщение в окно чата и обнуляем поле ввода
-      var playerName = userData.playerName || "Аноним";
-      UI.addMessage(playerName, $('#message').val());
+      UI.addMessage(ackData.playerIndex, $('#message').val());
       $('#message').val('');
     },
 
