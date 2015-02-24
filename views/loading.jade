@@ -3,11 +3,13 @@ extends base
 block vars
   - var title = "Загрузка..."
 
+block includes
+  script(src="/socket.io/socket.io.js")
+
 block content
   h1= message
   p Подождите, пожалуйста...
 
-  script(src="/socket.io/socket.io.js")
   script.
     socket = io.connect();
     socket.on('roomIDReturned', function onRoomFound(roomID) {

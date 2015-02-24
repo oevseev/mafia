@@ -13,17 +13,14 @@ function Game(room, callback) {
     move: 0 // Текущий ход
   };
 
-  // Следующая смена фазы и таймаут
-  this.nextPhaseChange = null;
+  // Таймаут и следующая смена фазы
   this.timeout = null;
+  this.nextPhaseChange = null;
 
   // Роли игроков
   this.roles = {};
   // Выбывшие игроки
   this.elimPlayers = [];
-  // Игрок-комиссар
-  this.detective = null;
-
   // Результаты голосования
   this.votes = {};
 
@@ -50,11 +47,12 @@ function Game(room, callback) {
     }
 
     // Назначение комиссара
+    /*
     if (civilians) {
       var id = civilians[Math.floor(civilians.length * Math.random())];
       this.roles[id] = "detective";
-      this.detective = this.room.clients[id];
     }
+    */
   };
 
   // Получение списка выбывших игроков (в формате индекс-роль)
@@ -122,18 +120,20 @@ function Game(room, callback) {
 
   // Обработка голосования
   this.processVote = function (playerID, vote) {
-    if (!(playerID in this.votes)) {
-      this.votes[playerID] = this.room.ids[vote];
-      console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[
-        playerID].playerName + " голосует против игрока " + this.room.clients[
-        this.votes[playerID]].playerName + ".");
+    if (!(playerID in this.votes) && !(playerID in this.elimPlayers)) {
+      if (typeof this.room.ids[vote] != 'undefined') {
+        this.votes[playerID] = this.room.ids[vote];
+        console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[
+          playerID].playerName + " голосует против игрока " + this.room.clients[
+          this.votes[playerID]].playerName + ".");
+      }
     }
   };
 
   // Обработка результата голосования
   this.processVoteResult = function () {
     // Голосование не учитывается, если не было проголосовавших
-    if (Object.keys(this.votes).length === 0) {
+    if (Object.keys(this.votes).length == 0) {
       return null;
     }
 
@@ -154,7 +154,7 @@ function Game(room, callback) {
       }));
     var candidates = [];
     for (var id in voteCount) {
-      if (voteCount[id] === max_votes) {
+      if (voteCount[id] == max_votes) {
         candidates.push(id);
       }
     }

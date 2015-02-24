@@ -3,26 +3,32 @@ extends base
 block vars
   - var title = "Мафия"
 
-block content
-  h1= "Мафия"
-  h2= "Комната " + roomID
-
-  ul#players
-  hr
-
-  form(action="javascript:void(0);")
-    input#msg
-    input(type="submit", value="Отправить")
-  ul#chat
-
+block includes
   script(src="/libs/cookies.js")
   script(src="/libs/jquery-2.1.3.js")
   script(src="/socket.io/socket.io.js")
+
+block content
+  h1= "Мафия"
+  h2= "Комната " + roomID
+  h3#status= "Игра еще не началась"
+
+  ol#players
+  form#vote-form(action="javascript:void(0);")
+    select#vote-player
+    input#vote-submit(type="submit", value="Проголосовать", disabled)
+  hr
+
+  form#chat-form(action="javascript:void(0);")
+    input#message
+    input#chat-submit(type="submit", value="Отправить")
+  ul#chat
 
   script.
     var userData = {
       roomID: '#{roomID}',
       playerID: Cookies('playerID'),
       playerName: Cookies('playerName')
-    }
+    };
+
   script(src="/js/client.js")

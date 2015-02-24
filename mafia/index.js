@@ -18,7 +18,7 @@ exports.useIOAndConfig = function (_io, _config) {
 // комнату. В противном случае callback игнорируется.
 function assertAck(socket, callback) {
   return function (data) {
-    if (typeof socket.userData === 'undefined') {
+    if (typeof socket.userData == 'undefined') {
       return;
     }
     callback(socket.userData.room, socket.userData.player, data);
@@ -67,20 +67,18 @@ exports.clientConnection = function (socket) {
   socket.on('ackRoom', function onAckRoom(data) {
     var room = roomManager.rooms[data.roomID];
     var playerID = data.playerID;
-    var playerName = 'playerName' in data ? data.playerName :
-      config.defaultName;
+    var playerName = data.playerName || config.defaultName;
 
     // Проверка на существование комнаты
-    if (typeof room === 'undefined') {
+    if (typeof room == 'undefined') {
       return;
     }
 
     // Подключается ли игрок в первый раз
     var isFirstConnection = false;
 
-    // Если игрока нет в комнате
-    if (!(playerID in room.clients) && room.isSealed) // и комната запечатана
-    {
+    // Если игрока нет в комнате и комната запечатана
+    if (!(playerID in room.clients) && room.isSealed) {
       // Отправляем сообщение о том, что игра уже началась
       socket.emit('roomIsSealed');
       // Прерываем обработку события
@@ -93,7 +91,7 @@ exports.clientConnection = function (socket) {
       // Добавляем игрока в комнату
       room.connect(playerID, playerName, socket);
       // Оповещаем всех игроков о присоединении нового игрока
-      socket.broadcast.to(room.id).emit('newPlayer', playerName);
+      socket.broadcast.to(room.id).emit('playerJoined', playerName);
     } else {
       // Изменяем сокет
       room.clients[playerID].socket = socket;
@@ -110,6 +108,8 @@ exports.clientConnection = function (socket) {
 
     // Отправляем игроку информацию о комнате
     var roomData = {
+      // Индекс игрока
+      playerIndex: room.ids.indexOf(playerID),
       // Подключается ли игрок впервые
       isFirstConnection: isFirstConnection,
       // Может ли игрок начинать игру
@@ -126,6 +126,10 @@ exports.clientConnection = function (socket) {
       roomData.playerRole = room.game.roles[playerID];
       // Выбывшие игроки
       roomData.elimPlayers = room.game.getElimPlayers();
+      // Члены мафии
+      if (room.game.roles[playerID] == "mafia") {
+        roomData.mafiaMembers = [];
+      }
     }
 
     socket.emit('roomData', roomData);
@@ -135,7 +139,7 @@ exports.clientConnection = function (socket) {
   socket.on('startGame', assertAck(socket,
     function onStartGame(room, player) {
       // Если игрок — владелец комнаты
-      if (player.id === room.owner.id) {
+      if (player === room.owner) {
         // Запечатываем ее и начинаем игру
         room.seal();
         room.startGame(function onUpdate(data) {
@@ -158,17 +162,19 @@ exports.clientConnection = function (socket) {
   // Голосование
   socket.on('playerVote', assertAck(socket,
     function onPlayerVote(room, player, data) {
-      if (player.id in room.clients && room.game && room.game.state.isVoting) {
+      if (player.id in room.clients && room.game &&
+        room.game.state.isVoting && !(player.id in room.game.elimPlayers))
+      {
         var voteData = {
           playerIndex: room.ids.indexOf(player.id),
           vote: data.vote
         };
 
         if (room.game.state.isDay) {
-          socket.broadcast.to(room.id).emit('vote', voteData);
+          socket.broadcast.to(room.id).emit('playerVote', voteData);
         } else {
-          if (room.game.roles[player.id] === 'mafia') {
-            socket.broadcast.to(room.id + '_m').emit('vote', voteData);
+          if (room.game.roles[player.id] == 'mafia') {
+            socket.broadcast.to(room.id + '_m').emit('playerVote', voteData);
           } else {
             return;
           }
@@ -176,7 +182,6 @@ exports.clientConnection = function (socket) {
 
         // Отправляем голосование на проверку
         room.game.processVote(player.id, data.vote);
-
         // Не даем комнате самоликвидироваться
         room.setRoomTimeout(config.inactiveRoomTimeout);
       }
@@ -189,13 +194,13 @@ exports.clientConnection = function (socket) {
     function onChatMessage(room, player, data) {
       if (player.id in room.clients) {
         var msgData = {
-          playerName: player.playerName,
+          playerIndex: room.ids.indexOf(player.id),
           message: data.message
         };
 
         if (room.game && !room.game.state.isDay) {
           // Локальный чат мафии (ночью)
-          if (room.game.roles[player.id] === 'mafia') {
+          if (room.game.roles[player.id] == 'mafia') {
             socket.broadcast.to(room.id + '_m').emit('chatMessage',
               msgData);
             console.log("[CHAT] [" + room.id + "] [M] " + player.playerName +
