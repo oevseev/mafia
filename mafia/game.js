@@ -8,7 +8,7 @@ function Game(room, callback) {
 
   // Состояние игры
   this.state = {
-    isDay: true, // Является ли текущая фаза днем
+    isDay: false, // Является ли текущая фаза днем
     isVoting: false, // Идет ли голосование
     move: 0 // Текущий ход
   };
@@ -65,6 +65,32 @@ function Game(room, callback) {
     return elimList;
   };
 
+  // Получение победителя
+  this.getWinner = function () {
+    // Подсчет числа активных игроков по ролям
+    var civilian_count = 0, mafia_count = 0;
+    for (var id in this.roles) {
+      if (!(id in this.elimPlayers)) {
+        if (this.roles[id] == "mafia") {
+          mafia_count++;
+        } else {
+          civilian_count++;
+        }
+      }
+    }
+
+    if (mafia_count == 0) {
+      // Мирные горожане побеждают, если пойманы все мафиози.
+      return "civilian";
+    } else if (civilian_count <= mafia_count) {
+      // Мафия побеждает, если число ее членов сравнялось с числом живых
+      // мирных горожан.
+      return "mafia";
+    } else {
+      return null;
+    }
+  };
+
   // Смена фазы
   this.nextPhase = function () {
     if (this.state.isVoting) {
@@ -106,16 +132,24 @@ function Game(room, callback) {
     }
 
     // Оповещаем игроков об обновлении состояния игры
-    this.callback({
+    this.callback('update', {
       gameState: this.state,
       outvotedPlayer: outvotedPlayer
     });
 
-    // Переход к следующему ходу
-    this.timeout = setTimeout(this.nextPhase.bind(this), timeout * 1000);
-
-    console.log("[GAME] [" + this.room.id + "] Ход #" + this.state.move +
-      ", наступает " + phaseName + ".");
+    // Проверка на победу
+    var winner = this.getWinner();
+    if (winner === null) {
+      // Переход к следующему ходу
+      this.timeout = setTimeout(this.nextPhase.bind(this), timeout * 1000);
+      console.log("[GAME] [" + this.room.id + "] Ход #" + this.state.move +
+        ", наступает " + phaseName + ".");
+    } else {
+      this.callback('gameEnded', winner == "mafia");
+      console.log("[GAME] [" + this.room.id + "] Победа " + (winner ==
+        "mafia" ? "мафии" : "мирных горожан") + ".");
+      this.room.game = null; // Удаление игры
+    }
   };
 
   // Обработка голосования
@@ -124,8 +158,9 @@ function Game(room, callback) {
       if (typeof this.room.ids[vote] != 'undefined') {
         this.votes[playerID] = this.room.ids[vote];
         console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[
-          playerID].playerName + " голосует против игрока " + this.room.clients[
-          this.votes[playerID]].playerName + ".");
+            playerID].playerName + " голосует против игрока " + this.room
+          .clients[
+            this.votes[playerID]].playerName + ".");
       }
     }
   };

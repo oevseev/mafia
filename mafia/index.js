@@ -65,6 +65,10 @@ exports.clientConnection = function (socket) {
 
   // Подтверждение комнаты
   socket.on('ackRoom', function onAckRoom(data) {
+    if (typeof data == 'undefined') {
+      return;
+    }
+
     var room = roomManager.rooms[data.roomID];
     var playerID = data.playerID;
     var playerName = data.playerName || config.defaultName;
@@ -142,8 +146,8 @@ exports.clientConnection = function (socket) {
       if (player === room.owner) {
         // Запечатываем ее и начинаем игру
         room.seal();
-        room.startGame(function onUpdate(data) {
-          io.to(room.id).emit('update', data);
+        room.startGame(function onUpdate(event, data) {
+          io.to(room.id).emit(event, data);
         });
         // Оповещаем всех игроков о начале игры
         io.to(room.id).emit('gameStarted');
@@ -157,24 +161,31 @@ exports.clientConnection = function (socket) {
   socket.on('leaveGame', assertAck(socket,
     function onLeaveGame(room, player) {
       // Здесь должен обрабатываться сигнал о выходе из игры.
-    }));
+    }
+  ));
 
   // Голосование
   socket.on('playerVote', assertAck(socket,
     function onPlayerVote(room, player, data) {
       if (player.id in room.clients && room.game &&
-        room.game.state.isVoting && !(player.id in room.game.elimPlayers))
-      {
+        room.game.state.isVoting && !(player.id in room.game.elimPlayers)
+      ) {
         var voteData = {
           playerIndex: room.ids.indexOf(player.id),
           vote: data.vote
         };
+        // Не даем проголосовать против себя или против уже исключенного
+        if (voteData.playerIndex === voteData.vote || voteData.vote in
+          room.game.elimPlayers) {
+          return;
+        }
 
         if (room.game.state.isDay) {
           socket.broadcast.to(room.id).emit('playerVote', voteData);
         } else {
           if (room.game.roles[player.id] == 'mafia') {
-            socket.broadcast.to(room.id + '_m').emit('playerVote', voteData);
+            socket.broadcast.to(room.id + '_m').emit('playerVote',
+              voteData);
           } else {
             return;
           }
