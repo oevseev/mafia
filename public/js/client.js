@@ -17,24 +17,25 @@
 
     // События, касающиеся информации о комнате
     socket.on('roomData', function onRoomData(data) {
+      gameData = {
+        playerIndex: data.playerIndex,
+        playerRole: data.playerRole,
+        mafiaMembers: data.mafiaMembers
+      };
       UI.initRoomData(data);
     });
     socket.on('roomIsSealed', function onRoomIsSealed() {
-      UI.notifySealed();
+      UI.roomIsSealed();
     });
     socket.on('update', function onUpdate(data) {
       UI.updateRoomData(data);
     });
 
-    // Оповещение о полученной роли
-    socket.on('roleNotify', function onRoleNotify(role) {
-      gameData.playerRole = role;
-      UI.logMessage("Игра началась. Вы — " + getRoleName(role) + ".");
-    });
-
     // События начала/конца игры
-    socket.on('gameStarted', function onGameStarted() {
-      UI.startGame();
+    socket.on('gameStarted', function onGameStarted(data) {
+      gameData.playerRole = data.role;
+      gameData.mafiaMembers = data.mafiaMembers;
+      UI.startGame(data);
     });
     socket.on('gameEnded', function onGameEnded(isMafia) {
       UI.endGame(isMafia);
@@ -108,17 +109,16 @@
 
     // Установка статуса
     setStatus: function (state) {
-      $('#status').text("Ход #" + state.move + " — " + (state.isDay ?
-        "день" : "ночь") + (state.isVoting ? ", голосование" : ""));
+      if (state.move == 0) {
+        $('#status').text("Ход #0 — знакомство мафии");
+      } else {
+        $('#status').text("Ход #" + state.move + " — " + (state.isDay ?
+          "день" : "ночь") + (state.isVoting ? ", голосование" : ""));
+      }
     },
 
     // Установка состояния комнаты
     initRoomData: function (data) {
-      gameData = {
-        playerIndex: data.playerIndex,
-        playerRole: data.playerRole
-      };
-
       if (data.gameState) {
         UI.setStatus(data.gameState);
       }
@@ -129,6 +129,7 @@
           socket.emit('startGame');
         });
       }
+
       for (var i = 0; i < data.playerList.length; i++) {
         UI.addPlayer(data.playerList[i]);
         if (data.elimPlayers && i in data.elimPlayers) {
@@ -139,7 +140,6 @@
       if (data.elimPlayers && data.playerIndex in data.elimPlayers) {
         $('#vote-form').remove();
       }
-
       if (data.playerRole) {
         UI.logMessage("Вы — " + getRoleName(data.playerRole) + ".");
       }
@@ -182,14 +182,24 @@
     },
 
     // Оповещение о том, что комната запечатана
-    notifySealed: function () {
+    roomIsSealed: function () {
       $('body').text("Игра уже началась.");
     },
 
     // Начало игры
-    startGame: function () {
+    startGame: function (data) {
+      UI.logMessage("Игра началась. Вы — " + getRoleName(data.role) + ".");
+
       $('#status').text("Ход #0 — знакомство мафии");
       $('#start-game').remove();
+      $('#chat-submit').prop('disabled', true);
+
+      if (data.mafiaMembers) {
+        for (var i = 0; i < data.mafiaMembers.length; i++) {
+          $('#players').children().eq(data.mafiaMembers[i]).css(
+            'font-style', 'italic');
+        }
+      }
     },
 
     // Конец игры
@@ -211,6 +221,9 @@
       var $player = $('<li>').text(playerName);
       if (playerIndex == gameData.playerIndex) {
         $player.css('font-weight', 'bold');
+      }
+      if (gameData.mafiaMembers && playerIndex in gameData.mafiaMembers) {
+        $player.css('font-style', 'italic');
       }
       $('#players').append($player);
       $('#vote-player').append($('<option>').val(playerIndex).text("#" +

@@ -65,6 +65,17 @@ function Game(room, callback) {
     return elimList;
   };
 
+  // Получение индексов игроков-мафиози
+  this.getMafia = function () {
+    var mafiaList = [];
+    for (var id in this.roles) {
+      if (this.roles[id] == "mafia") {
+        mafiaList.push(this.room.ids.indexOf(id));
+      }
+    }
+    return mafiaList;
+  };
+
   // Получение победителя
   this.getWinner = function () {
     // Подсчет числа активных игроков по ролям
@@ -215,7 +226,10 @@ function Game(room, callback) {
     // Назначаем роли и сообщаем их игрокам
     this.assignRoles();
     for (var id in this.room.clients) {
-      this.room.clients[id].socket.emit('roleNotify', this.roles[id]);
+      this.room.clients[id].socket.emit('gameStarted', {
+        role: this.roles[id],
+        mafiaMembers: this.roles[id] == "mafia" ? this.getMafia() : undefined
+      });
     }
 
     // Запускаем цепную реакцию!

@@ -117,7 +117,7 @@ exports.clientConnection = function (socket) {
       // Подключается ли игрок впервые
       isFirstConnection: isFirstConnection,
       // Может ли игрок начинать игру
-      canStartGame: !room.isSealed && (playerID === room.owner.id),
+      canStartGame: !room.game && (playerID === room.owner.id),
       // Список игроков в комнате
       playerList: room.getPlayerList()
     };
@@ -132,7 +132,7 @@ exports.clientConnection = function (socket) {
       roomData.elimPlayers = room.game.getElimPlayers();
       // Члены мафии
       if (room.game.roles[playerID] == "mafia") {
-        roomData.mafiaMembers = [];
+        roomData.mafiaMembers = room.game.getMafia();
       }
     }
 
@@ -143,14 +143,12 @@ exports.clientConnection = function (socket) {
   socket.on('startGame', assertAck(socket,
     function onStartGame(room, player) {
       // Если игрок — владелец комнаты
-      if (player === room.owner) {
+      if (player === room.owner && !room.game) {
         // Запечатываем ее и начинаем игру
         room.seal();
-        room.startGame(function onUpdate(event, data) {
-          io.to(room.id).emit(event, data);
+        room.startGame(function onUpdate(eventName, data) {
+          io.to(room.id).emit(eventName, data);
         });
-        // Оповещаем всех игроков о начале игры
-        io.to(room.id).emit('gameStarted');
         // Устанавливаем таймаут для неактивной комнаты
         room.setRoomTimeout(config.inactiveRoomTimeout);
       }
