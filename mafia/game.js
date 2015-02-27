@@ -152,7 +152,7 @@ function Game(room, callback) {
     var winner = this.getWinner();
     if (winner === null) {
       // Переход к следующему ходу
-      this.timeout = setTimeout(this.nextPhase.bind(this), timeout * 1000);
+      this.nextPhaseTimeout(timeout);
       console.log("[GAME] [" + this.room.id + "] Ход #" + this.state.move +
         ", наступает " + phaseName + ".");
     } else {
@@ -161,6 +161,14 @@ function Game(room, callback) {
         "mafia" ? "мафии" : "мирных горожан") + ".");
       this.room.game = null; // Удаление игры
     }
+  };
+
+  // Установка таймаута следующей фазы
+  this.nextPhaseTimeout = function (timeout) {
+    this.timeout = setTimeout(this.nextPhase.bind(this), timeout * 1000);
+    this.nextPhaseTimeout = new Date();
+    this.nextPhaseTimeout.setSeconds(this.nextPhaseTimeout.getSeconds() +
+      timeout);
   };
 
   // Обработка голосования
@@ -233,8 +241,7 @@ function Game(room, callback) {
     }
 
     // Запускаем цепную реакцию!
-    this.timeout = setTimeout(this.nextPhase.bind(this),
-      this.room.options.dayTimeout * 1000);
+    this.nextPhaseTimeout(this.room.options.nightTimeout);
 
     console.log("[GAME] [" + this.room.id + "] Игра началась.");
   };
