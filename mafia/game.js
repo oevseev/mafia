@@ -80,8 +80,9 @@ function Game(room, callback) {
   this.getWinner = function () {
     // Подсчет числа активных игроков по ролям
     var civilian_count = 0, mafia_count = 0;
+
     for (var id in this.roles) {
-      if (!(id in this.elimPlayers)) {
+      if (!(this.elimPlayers.indexOf(id) > -1)) {
         if (this.roles[id] == "mafia") {
           mafia_count++;
         } else {
@@ -173,7 +174,8 @@ function Game(room, callback) {
 
   // Обработка голосования
   this.processVote = function (playerID, vote) {
-    if (!(playerID in this.votes) && !(playerID in this.elimPlayers)) {
+    if (!(playerID in this.votes) && !(this.elimPlayers.indexOf(playerID) >
+        -1)) {
       if (typeof this.room.ids[vote] != 'undefined') {
         this.votes[playerID] = this.room.ids[vote];
         console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[

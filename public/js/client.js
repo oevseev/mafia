@@ -79,8 +79,14 @@
     // Инициализация UI
     init: function () {
       if (typeof userData.playerName == 'undefined') {
-        $('body').text('Задайте имя, прежде чем играть.');
-        return;
+        var playerName = prompt('Введите свое имя:');
+        if (playerName) {
+          userData.playerName = playerName;
+          Cookies.set('playerName', playerName);
+        } else {
+          $('body').text("Задайте имя, прежде чем играть.");
+          return;
+        }
       }
 
       initSocket();
@@ -193,7 +199,9 @@
 
       $('#status').text("Ход #0 — знакомство мафии");
       $('#start-game').remove();
-      $('#chat-submit').prop('disabled', true);
+      if (data.playerRole != "mafia") {
+        $('#chat-submit').prop('disabled', true);
+      }
 
       if (data.mafiaMembers) {
         for (var i = 0; i < data.mafiaMembers.length; i++) {

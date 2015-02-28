@@ -166,15 +166,15 @@ exports.clientConnection = function (socket) {
   socket.on('playerVote', assertAck(socket,
     function onPlayerVote(room, player, data) {
       if (player.id in room.clients && room.game &&
-        room.game.state.isVoting && !(player.id in room.game.elimPlayers)
-      ) {
+        room.game.state.isVoting && !(room.game.elimPlayers.indexOf(
+          player.id) > -1)) {
         var voteData = {
           playerIndex: room.ids.indexOf(player.id),
           vote: data.vote
         };
         // Не даем проголосовать против себя или против уже исключенного
-        if (voteData.playerIndex === voteData.vote || voteData.vote in
-          room.game.elimPlayers) {
+        if (voteData.playerIndex === voteData.vote || room.game.elimPlayers
+          .indexOf(voteData.vote) > -1) {
           return;
         }
 
