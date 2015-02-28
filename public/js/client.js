@@ -155,6 +155,7 @@
           $('#vote-submit').prop('disabled', false);
         }
       } else {
+        $('#vote-submit').prop('disabled', true);
         if (data.outvotedPlayer) {
           UI.logMessage("Игрок #" + (data.outvotedPlayer.playerIndex + 1) +
             " был " + (data.gameState.isDay ? "убит" :
@@ -250,8 +251,8 @@
     // Голосование
     vote: function () {
       var voteIndex = parseInt($('#vote-player').val());
-      if (!(voteIndex == gameData.playerIndex || UI.playerList.role[
-          voteIndex])) {
+      if (!(voteIndex == gameData.playerIndex || UI.playerList[
+          voteIndex].role)) {
         socket.emit('playerVote', {
           vote: voteIndex
         });
