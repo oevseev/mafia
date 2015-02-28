@@ -166,8 +166,8 @@ function Game(room, callback) {
   // Установка таймаута следующей фазы
   this.nextPhaseTimeout = function (timeout) {
     this.timeout = setTimeout(this.nextPhase.bind(this), timeout * 1000);
-    this.nextPhaseTimeout = new Date();
-    this.nextPhaseTimeout.setSeconds(this.nextPhaseTimeout.getSeconds() +
+    this.nextPhaseChange = new Date();
+    this.nextPhaseChange.setSeconds(this.nextPhaseChange.getSeconds() +
       timeout);
   };
 
