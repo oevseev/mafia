@@ -69,6 +69,9 @@ function Room(id, options) {
       this.game = null;
     }
     delete rooms[this.id];
+    if (pending.indexOf(this) > -1) {
+      pending.splice(pending.indexOf(this), 1);
+    }
     console.log("[RM] Комната /id/" + this.id + "/ удалена.");
   };
 
