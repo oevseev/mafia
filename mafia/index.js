@@ -95,7 +95,9 @@ exports.clientConnection = function (socket) {
       // Добавляем игрока в комнату
       room.connect(playerID, playerName, socket);
       // Оповещаем всех игроков о присоединении нового игрока
-      socket.broadcast.to(room.id).emit('playerJoined', playerName);
+      socket.broadcast.to(room.id).emit('playerJoined', {
+        playerName: playerName
+      });
     } else {
       // Изменяем сокет
       room.clients[playerID].socket = socket;

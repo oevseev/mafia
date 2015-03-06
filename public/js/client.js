@@ -37,15 +37,15 @@
       gameData.mafiaMembers = data.mafiaMembers;
       UI.startGame(data);
     });
-    socket.on('gameEnded', function onGameEnded(isMafia) {
-      UI.endGame(isMafia);
+    socket.on('gameEnded', function onGameEnded(data) {
+      UI.endGame(data.isMafiaWin);
     });
 
     // События о входе/выходе игрока из комнаты
-    socket.on('playerJoined', function onPlayerJoined(playerName) {
-      UI.addPlayer(playerName);
+    socket.on('playerJoined', function onPlayerJoined(data) {
+      UI.addPlayer(data.playerName);
     });
-    socket.on('playerLeft', function onPlayerLeft(playerIndex) {});
+    socket.on('playerLeft', function onPlayerLeft(data) {});
 
     // События, касающиеся ретранслируемой информации
     socket.on('chatMessage', function onChatMessage(data) {

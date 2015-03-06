@@ -157,7 +157,9 @@ function Game(room, callback) {
       console.log("[GAME] [" + this.room.id + "] Ход #" + this.state.move +
         ", наступает " + phaseName + ".");
     } else {
-      this.callback('gameEnded', winner == "mafia");
+      this.callback('gameEnded', {
+        isMafiaWin: winner == "mafia"
+      });
       console.log("[GAME] [" + this.room.id + "] Победа " + (winner ==
         "mafia" ? "мафии" : "мирных горожан") + ".");
       this.room.game = null; // Удаление игры
