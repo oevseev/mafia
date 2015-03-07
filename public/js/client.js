@@ -36,7 +36,7 @@
     });
     socket.on('update', function onUpdate(data) {
       roomData.state = data.state;
-      if ('outvotedPlayer' in data) {
+      if (data.outvotedPlayer) {
         roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = {
           role: data.outvotedPlayer.role,
           eliminated: true
