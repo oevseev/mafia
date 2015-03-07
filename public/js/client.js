@@ -6,8 +6,15 @@
   var socket;
   // Пользовательский интерфейс
   var UI;
-  // Данные пользователя
-  var gameData;
+
+  // Данные комнаты
+  var roomData = {
+    playerIndex: null, // Индекс игрока (начиная с 0!)
+    playerList: [], // Список имен игроков в комнате
+    role: null, // Роль игрока
+    state: null, // Состояние игры
+    exposedPlayers: {} // Список игроков, чья роль известна
+  };
 
   // Настройка сокета.
   // Клиент подключается к сокету, устанавливает ответы на события игры и
@@ -17,24 +24,38 @@
 
     // События, касающиеся информации о комнате
     socket.on('roomData', function onRoomData(data) {
-      gameData = {
-        playerIndex: data.playerIndex,
-        playerRole: data.playerRole,
-        mafiaMembers: data.mafiaMembers
-      };
+      for (var field in roomData) {
+        if (field in data) {
+          roomData[field] = data[field];
+        }
+      }
       UI.initRoomData(data);
     });
     socket.on('roomIsSealed', function onRoomIsSealed() {
       UI.roomIsSealed();
     });
     socket.on('update', function onUpdate(data) {
+      roomData.state = data.state;
+      if ('outvotedPlayer' in data) {
+        roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = {
+          role: data.outvotedPlayer.role,
+          eliminated: true
+        };
+      }
       UI.updateRoomData(data);
     });
 
     // События начала/конца игры
     socket.on('gameStarted', function onGameStarted(data) {
-      gameData.playerRole = data.role;
-      gameData.mafiaMembers = data.mafiaMembers;
+      roomData.role = data.role;
+      if ('mafiaMembers' in data) {
+        for (var index in data.mafiaMembers) {
+          roomData.exposedPlayers[index] = {
+            role: 'mafia',
+            eliminated: false
+          };
+        }
+      }
       UI.startGame(data);
     });
     socket.on('gameEnded', function onGameEnded(data) {
@@ -43,7 +64,8 @@
 
     // События о входе/выходе игрока из комнаты
     socket.on('playerJoined', function onPlayerJoined(data) {
-      UI.addPlayer(data.playerName);
+      roomData.playerList.push(data.playerName);
+      UI.addPlayer(roomData.playerList.length - 1, data.playerName);
     });
     socket.on('playerLeft', function onPlayerLeft(data) {});
 
@@ -63,9 +85,9 @@
   // Получение названия роли на русском языке
   function getRoleName(role) {
     return ({
-      "civilian": "мирный житель",
-      "mafia": "мафиози",
-      "detective": "комиссар"
+      'civilian': "мирный житель",
+      'mafia': "мафиози",
+      'detective': "комиссар"
     })[role];
   }
 
@@ -73,9 +95,6 @@
   // Сюда относятся все функции и объекты, так или иначе манипулирующие
   // состоянием пользовательского интерфейса.
   UI = {
-    // Список игроков
-    playerList: [],
-
     // Инициализация UI
     init: function () {
       if (typeof userData.playerName == 'undefined') {
@@ -102,7 +121,7 @@
     // Добавление сообщения в чат
     addMessage: function (playerIndex, message) {
       var $message = $('<li>').text(" " + message);
-      $message.prepend($('<b>').text(UI.playerList[playerIndex].playerName +
+      $message.prepend($('<b>').text(roomData.playerList[playerIndex] +
         ":"));
       $('#chat').prepend($message);
     },
@@ -115,19 +134,29 @@
 
     // Установка статуса
     setStatus: function (state) {
-      if (state.move == 0) {
+      if (state === null || state.move === 0) {
         $('#status').text("Ход #0 — знакомство мафии");
+
+        if (roomData.role != 'mafia') {
+          $('#chat-submit').prop('disabled', true);
+        }
       } else {
         $('#status').text("Ход #" + state.move + " — " + (state.isDay ?
           "день" : "ночь") + (state.isVoting ? ", голосование" : ""));
+
+        $('#vote-submit').prop('disabled', !state.isVoting || (!state.isDay &&
+          roomData.role != 'mafia'));
+        $('#chat-submit').prop('disabled', !state.isDay && roomData.role !=
+          'mafia');
       }
     },
 
     // Установка состояния комнаты
     initRoomData: function (data) {
-      if (data.gameState) {
-        UI.setStatus(data.gameState);
+      if (data.state) {
+        UI.setStatus(data.state);
       }
+
       if (data.canStartGame) {
         $('<a href="javascript:void(0)" id="start-game">').text(
           "Начать игру").insertAfter('#status');
@@ -137,51 +166,45 @@
       }
 
       for (var i = 0; i < data.playerList.length; i++) {
-        UI.addPlayer(data.playerList[i]);
-        if (data.elimPlayers && i in data.elimPlayers) {
-          UI.setPlayerRole(i, data.elimPlayers[i]);
+        UI.addPlayer(i, data.playerList[i]);
+        if (data.exposedPlayers && i in data.exposedPlayers && data.exposedPlayers[
+            i].eliminated) {
+          UI.setPlayerRole(i, data.exposedPlayers[i].role);
         }
       }
 
-      if (data.elimPlayers && data.playerIndex in data.elimPlayers) {
-        $('#vote-form').remove();
+      if (data.role) {
+        UI.logMessage("Вы — " + getRoleName(data.role) + ".");
       }
-      if (data.playerRole) {
-        UI.logMessage("Вы — " + getRoleName(data.playerRole) + ".");
+      if (data.exposedPlayers && data.playerIndex in data.exposedPlayers &&
+        data.exposedPlayers[data.playerIndex].eliminated) {
+        $('#vote-form').remove();
       }
     },
 
     // Обновление состояния комнаты
     updateRoomData: function (data) {
-      UI.setStatus(data.gameState);
+      UI.setStatus(data.state);
 
-      if (data.gameState.isVoting) {
+      if (data.state.isVoting) {
         UI.logMessage("Начинается голосование!");
-        if (data.gameState.isDay || gameData.playerRole == "mafia") {
-          $('#vote-submit').prop('disabled', false);
-        }
       } else {
-        $('#vote-submit').prop('disabled', true);
         if (data.outvotedPlayer) {
           UI.logMessage("Игрок #" + (data.outvotedPlayer.playerIndex + 1) +
-            " был " + (data.gameState.isDay ? "убит" :
-              "посажен в тюрьму") + ".");
+            " был " + (data.state.isDay ? "убит" : "посажен в тюрьму") +
+            ".");
           UI.setPlayerRole(data.outvotedPlayer.playerIndex, data.outvotedPlayer
             .role);
         }
-        if (data.gameState.isDay) {
+        if (data.state.isDay) {
           UI.logMessage("Наступает день, просыпаются мирные жители.");
-          $('#chat-submit').prop('disabled', false);
         } else {
           UI.logMessage(
             "Наступает ночь, город засыпает. Просыпается мафия.");
-          if (gameData.playerRole != "mafia") {
-            $('#chat-submit').prop('disabled', true);
-          }
         }
       }
 
-      if (data.outvotedPlayer && gameData.playerIndex ===
+      if (data.outvotedPlayer && roomData.playerIndex ===
         data.outvotedPlayer.playerIndex) {
         $('#vote-form').remove();
         UI.logMessage("Вы выбыли из игры.");
@@ -197,13 +220,10 @@
     startGame: function (data) {
       UI.logMessage("Игра началась. Вы — " + getRoleName(data.role) + ".");
 
-      $('#status').text("Ход #0 — знакомство мафии");
+      UI.setStatus(null);
       $('#start-game').remove();
-      if (data.playerRole != "mafia") {
-        $('#chat-submit').prop('disabled', true);
-      }
 
-      if (data.mafiaMembers) {
+      if (data.mafiaMembers && data.role == 'mafia') {
         for (var i = 0; i < data.mafiaMembers.length; i++) {
           $('#players').children().eq(data.mafiaMembers[i]).css(
             'font-style', 'italic');
@@ -214,24 +234,26 @@
     // Конец игры
     endGame: function (isMafia) {
       $('#vote-form').remove();
+
       if (isMafia) {
         UI.logMessage("Победила мафия!");
       } else {
         UI.logMessage("Победили мирные жители!");
       }
+
+      setTimeout(function () {
+        window.location.reload();
+      }, 3000);
     },
 
     // Добавление игрока в список 
-    addPlayer: function (playerName) {
-      var playerIndex = UI.playerList.length;
-      UI.playerList.push({
-        playerName: playerName
-      });
+    addPlayer: function (playerIndex, playerName) {
       var $player = $('<li>').text(playerName);
-      if (playerIndex == gameData.playerIndex) {
+      if (playerIndex == roomData.playerIndex) {
         $player.css('font-weight', 'bold');
       }
-      if (gameData.mafiaMembers && playerIndex in gameData.mafiaMembers) {
+      if (roomData.exposedPlayers && playerIndex in roomData.exposedPlayers &&
+        roomData.exposedPlayers[playerIndex].role == 'mafia') {
         $player.css('font-style', 'italic');
       }
       $('#players').append($player);
@@ -241,7 +263,6 @@
 
     // Установка роли игрока
     setPlayerRole: function (playerIndex, role) {
-      UI.playerList[playerIndex].role = getRoleName(role);
       var $player = $('#players').children().eq(playerIndex);
       $player.text($player.text() + " (" + getRoleName(role) + ")");
     },
@@ -252,15 +273,15 @@
         message: $('#message').val()
       });
       // Добавляем сообщение в окно чата и обнуляем поле ввода
-      UI.addMessage(gameData.playerIndex, $('#message').val());
+      UI.addMessage(roomData.playerIndex, $('#message').val());
       $('#message').val('');
     },
 
     // Голосование
     vote: function () {
       var voteIndex = parseInt($('#vote-player').val());
-      if (!(voteIndex == gameData.playerIndex || UI.playerList[
-          voteIndex].role)) {
+      if (!(voteIndex == roomData.playerIndex || voteIndex in roomData.exposedPlayers &&
+          roomData.exposedPlayers[voteIndex].eliminated)) {
         socket.emit('playerVote', {
           vote: voteIndex
         });

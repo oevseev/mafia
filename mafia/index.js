@@ -1,18 +1,10 @@
-var uuid = require('node-uuid');
-
 // Менеджер комнат
 var roomManager = require('./rooms');
 
 // Главный объект Socket.IO
 var io;
-
 // Файл конфигурации (config.json)
 var config;
-
-exports.useIOAndConfig = function (_io, _config) {
-  io = _io;
-  config = _config;
-};
 
 // Выполняет callback только в том случае, если игрок уже подтвердил вход в
 // комнату. В противном случае callback игнорируется.
@@ -26,9 +18,8 @@ function assertAck(socket, callback) {
 }
 
 // Главная функция обработки событий сокета.
-// Это — единственная функция модуля игры, доступная извне (не считая функций
-// рендера ниже); вся логика игры так или иначе связана с этой функцией.
-exports.clientConnection = function (socket) {
+// Вся логика игры так или иначе связана с этой функцией.
+function onClientConnection(socket) {
   if (config.debug) {
     var clientIP;
     var forwarded = socket.request.headers['x-forwarded-for'];
@@ -43,7 +34,7 @@ exports.clientConnection = function (socket) {
       clientIP = socket.request.connection.remoteAddress;
     }
 
-    console.log("[IO] Соединение с клиентом " + clientIP);
+    console.log("[IO] Соединение с клиентом %s", clientIP);
   }
 
   // Получение UUID (только через API)
@@ -127,15 +118,11 @@ exports.clientConnection = function (socket) {
     // Если игра началась, добавляем информацию об игре
     if (room.game) {
       // Текущее состояние игры
-      roomData.gameState = room.game.state;
+      roomData.state = room.game.state;
       // Роль игрока
-      roomData.playerRole = room.game.roles[playerID];
-      // Выбывшие игроки
-      roomData.elimPlayers = room.game.getElimPlayers();
-      // Члены мафии
-      if (room.game.roles[playerID] == "mafia") {
-        roomData.mafiaMembers = room.game.getMafia();
-      }
+      roomData.role = room.game.roles[playerID];
+      // Игроки, чья роль известна
+      roomData.exposedPlayers = room.game.getExposedPlayers(playerID);
     }
 
     socket.emit('roomData', roomData);
@@ -174,9 +161,11 @@ exports.clientConnection = function (socket) {
           playerIndex: room.ids.indexOf(player.id),
           vote: data.vote
         };
+
         // Не даем проголосовать против себя или против уже исключенного
         if (voteData.playerIndex === voteData.vote || room.game.elimPlayers
           .indexOf(voteData.vote) > -1) {
+          socket.emit('voteRejected');
           return;
         }
 
@@ -186,7 +175,9 @@ exports.clientConnection = function (socket) {
           if (room.game.roles[player.id] == 'mafia') {
             socket.broadcast.to(room.id + '_m').emit('playerVote',
               voteData);
+            socket.emit('voteConfirmed');
           } else {
+            socket.emit('voteRejected');
             return;
           }
         }
@@ -214,24 +205,24 @@ exports.clientConnection = function (socket) {
           if (room.game.roles[player.id] == 'mafia') {
             socket.broadcast.to(room.id + '_m').emit('chatMessage',
               msgData);
-            console.log("[CHAT] [" + room.id + "] [M] " + player.playerName +
-              ": " + data.message);
+            console.log("[CHAT] [%s] [M] %s: %s", room.id, player.playerName,
+              data.message);
           } else {
-            if ('messageID' in data) {
-              socket.emit('chatMessageRejected', data.messageID);
+            if ('id' in data) {
+              socket.emit('chatMessageRejected', data.id);
             }
             return;
           }
         } else {
           // Всеобщий чат (днем)
           socket.broadcast.to(room.id).emit('chatMessage', msgData);
-          console.log("[CHAT] [" + room.id + "] " + player.playerName +
-            ": " + data.message);
+          console.log("[CHAT] [%s] %s: %s", room.id, player.playerName,
+            data.message);
         }
 
         // Отправляем подтверждение
-        if ('messageID' in data) {
-          socket.emit('chatMessageConfirmed', data.messageID);
+        if ('id' in data) {
+          socket.emit('chatMessageConfirmed', data.id);
         }
 
         // В зависимости от того, начата игра или нет, выбираем таймаут
@@ -243,40 +234,14 @@ exports.clientConnection = function (socket) {
   ));
 };
 
-// Далее следуют функции, возвращающие клиенту отрендеренные шаблоны.
-// По правде говоря, их можно было поместить в routes.js, но оставить их здесь
-// показалось наиболее верным (и эстетически приятным) решением.
-
-// Страница загрузки при поиске
-exports.findRoom = function (req, res) {
-  res.render('loading', {
-    eventName: 'findRoom',
-    message: "Идет поиск игры."
-  });
+// Проверка существования комнаты
+exports.checkRoomExistence = function (roomID, callback) {
+  callback(roomID in roomManager.rooms);
 };
 
-// Страница загрузки при создании
-exports.newRoom = function (req, res) {
-  res.render('loading', {
-    eventName: 'newRoom',
-    message: "Идет создание комнаты."
-  });
-};
-
-// Рендер шаблона комнаты
-exports.displayRoom = function (req, res, roomID) {
-  if (roomID in roomManager.rooms) {
-    // Назначение пользователю уникального идентификатора
-    if (!('playerID' in req.cookies)) {
-      res.cookie('playerID', uuid.v4());
-    }
-    res.render('room', {
-      roomID: roomID
-    });
-  } else {
-    res.status(404);
-    res.render('404', {
-      message: "Комнаты не существует."
-    });
-  }
+// Инициализация модуля игры
+exports.initialize = function (_io, _config) {
+  io = _io;
+  config = _config;
+  io.on('connection', onClientConnection);
 };

@@ -45,8 +45,8 @@ function Room(id, options) {
       this.ids.push(playerID);
     }
 
-    console.log("[RM] [" + this.id + "] Игрок " + playerName +
-      " присоединяется к игре.");
+    console.log("[RM] [%s] Игрок %s присоединяется к игре.", this.id,
+      playerName);
 
     // Если число игроков превышает допустимое, запечатываем комнату.
     if (this.ids.length >= this.options.maxPlayers) {
@@ -57,8 +57,8 @@ function Room(id, options) {
     // Хозяин имеет исключительное право запечатывать комнату.
     if (!this.owner) {
       this.owner = this.clients[playerID];
-      console.log("[RM] [" + this.id + "] Игрок " + playerName +
-        " становится хозяином комнаты.");
+      console.log("[RM] [%s] Игрок %s становится хозяином комнаты.", this.id,
+        playerName);
     }
   };
 
@@ -68,11 +68,13 @@ function Room(id, options) {
       clearTimeout(this.game.timeout);
       this.game = null;
     }
+
     delete rooms[this.id];
     if (pending.indexOf(this) > -1) {
       pending.splice(pending.indexOf(this), 1);
     }
-    console.log("[RM] Комната /id/" + this.id + "/ удалена.");
+
+    console.log("[RM] Комната /id/%s/ удалена.", this.id);
   };
 
   // Получение списка игроков (поименно в порядке подключения)
@@ -95,7 +97,7 @@ function Room(id, options) {
     // Удаляем комнату из списка доступных для поиска
     pending.splice(pending.indexOf(this), 1);
 
-    console.log("[RM] Комната /id/" + this.id + "/ запечатана.");
+    console.log("[RM] Комната /id/%s/ запечатана.", this.id);
   };
 
   // Установить таймаут на удаление комнаты
@@ -143,6 +145,6 @@ exports.newRoomID = function (options, timeout) {
   pending.push(id); // Добавление комнаты в список ожидающих начала
   rooms[id].setRoomTimeout(timeout);
 
-  console.log("[RM] Создана комната /id/" + id + "/");
+  console.log("[RM] Создана комната /id/%s/", id);
   return id;
 };

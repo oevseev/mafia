@@ -55,14 +55,32 @@ function Game(room, callback) {
     */
   };
 
-  // Получение списка выбывших игроков (в формате индекс-роль)
-  this.getElimPlayers = function () {
-    var elimList = {};
-    for (var i = 0; i < this.elimPlayers.length; i++) {
-      elimList[this.room.ids.indexOf(this.elimPlayers[i])] = this.roles[
-        this.elimPlayers[i]];
+  // Получение списка игроков, чья роль известна (в формате индекс-роль)
+  this.getExposedPlayers = function (playerID) {
+    var exposedList = {};
+
+    // Добавляем членов мафии
+    if (this.room.game.roles[playerID] == "mafia") {
+      var mafiaMembers = this.getMafia();
+      for (var i = 0; i < mafiaMembers.length; i++) {
+        exposedList[mafiaMembers[i]] = {
+          role: "mafia",
+          eliminated: false
+        };
+      }
     }
-    return elimList;
+
+    // Добавляем выбывших игроков
+    for (var i = 0; i < this.elimPlayers.length; i++) {
+      exposedList[this.room.ids.indexOf(this.elimPlayers[i])] = {
+        role: this.roles[this.elimPlayers[i]],
+        eliminated: true
+      };
+    }
+
+    // TODO: Игроки, раскрытые комиссаром
+
+    return exposedList;
   };
 
   // Получение индексов игроков-мафиози
@@ -79,7 +97,8 @@ function Game(room, callback) {
   // Получение победителя
   this.getWinner = function () {
     // Подсчет числа активных игроков по ролям
-    var civilian_count = 0, mafia_count = 0;
+    var civilian_count = 0,
+      mafia_count = 0;
 
     for (var id in this.roles) {
       if (!(this.elimPlayers.indexOf(id) > -1)) {
@@ -145,7 +164,7 @@ function Game(room, callback) {
 
     // Оповещаем игроков об обновлении состояния игры
     this.callback('update', {
-      gameState: this.state,
+      state: this.state,
       outvotedPlayer: outvotedPlayer
     });
 
@@ -154,14 +173,14 @@ function Game(room, callback) {
     if (winner === null) {
       // Переход к следующему ходу
       this.nextPhaseTimeout(timeout);
-      console.log("[GAME] [" + this.room.id + "] Ход #" + this.state.move +
-        ", наступает " + phaseName + ".");
+      console.log("[GAME] [%s] Ход #%d, наступает %s.", this.room.id, this.state
+        .move, phaseName);
     } else {
       this.callback('gameEnded', {
         isMafiaWin: winner == "mafia"
       });
-      console.log("[GAME] [" + this.room.id + "] Победа " + (winner ==
-        "mafia" ? "мафии" : "мирных горожан") + ".");
+      console.log("[GAME] [%s] Победа %s.", this.room.id, (winner ==
+        "mafia" ? "мафии" : "мирных жителей"));
       this.room.game = null; // Удаление игры
     }
   };
@@ -180,10 +199,9 @@ function Game(room, callback) {
         -1)) {
       if (typeof this.room.ids[vote] != 'undefined') {
         this.votes[playerID] = this.room.ids[vote];
-        console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[
-            playerID].playerName + " голосует против игрока " + this.room
-          .clients[
-            this.votes[playerID]].playerName + ".");
+        console.log("[GAME] [%s] Игрок %s голосует против игрока %s.",
+          this.room.id, this.room.clients[playerID].playerName,
+          this.room.clients[this.votes[playerID]].playerName);
       }
     }
   };
@@ -199,7 +217,7 @@ function Game(room, callback) {
     var voteCount = {};
     for (var id in this.votes) {
       if (this.votes[id] in voteCount) {
-        voteCount[this.votes[id]] ++;
+        voteCount[this.votes[id]]++;
       } else {
         voteCount[this.votes[id]] = 1;
       }
@@ -222,9 +240,8 @@ function Game(room, callback) {
 
     // Выбор случайного кандидата на вылет
     var candidate = candidates[Math.floor(Math.random() * candidates.length)];
-    console.log("[GAME] [" + this.room.id + "] Игрок " + this.room.clients[
-        candidate].playerName + " (" + this.roles[candidate] +
-      ") выбывает из игры.");
+    console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
+      this.room.clients[candidate].playerName, this.roles[candidate]);
 
     // Объявление кандидата
     return {
@@ -246,8 +263,7 @@ function Game(room, callback) {
 
     // Запускаем цепную реакцию!
     this.nextPhaseTimeout(this.room.options.nightTimeout);
-
-    console.log("[GAME] [" + this.room.id + "] Игра началась.");
+    console.log("[GAME] [%s] Игра началась.", this.room.id);
   };
 }
 

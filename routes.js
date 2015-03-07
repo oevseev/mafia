@@ -1,17 +1,47 @@
 var path = require('path');
 
 var express = require('express');
-var router = express.Router();
+var uuid = require('node-uuid');
 
+// Локальные зависимости
 var mafia = require('./mafia');
 
+// Создаем объект роутера, который будет экспортироваться
+var router = express.Router();
+
 // Кнопки в главном меню игры
-router.get('/find', mafia.findRoom);
-router.get('/new', mafia.newRoom);
+router.get('/find', function (req, res) {
+  res.render('loading', {
+    eventName: 'findRoom',
+    message: "Идет поиск игры."
+  });
+});
+router.get('/new', function (req, res) {
+  res.render('loading', {
+    eventName: 'newRoom',
+    message: "Идет создание комнаты."
+  });
+});
 
 // Комната с выбранным ID
 router.get(/^\/id\/([a-zA-Z0-9]{8})$/, function(req, res) {
-  mafia.displayRoom(req, res, req.params[0]);
+  var roomID = req.params[0];
+  mafia.checkRoomExistence(roomID, function (roomExists) {
+    if (roomExists) {
+      // Назначение пользователю уникального идентификатора
+      if (!('playerID' in req.cookies)) {
+        res.cookie('playerID', uuid.v4());
+      }
+      res.render('room', {
+        roomID: roomID
+      });
+    } else {
+      res.status(404);
+      res.render('404', {
+        message: "Комнаты не существует."
+      });
+    }
+  });
 });
 
 // Ошибка 404
