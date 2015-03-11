@@ -1,3 +1,5 @@
+var uuid = require('node-uuid');
+
 // Менеджер комнат
 var roomManager = require('./rooms');
 
@@ -148,6 +150,11 @@ function onClientConnection(socket) {
   socket.on('leaveGame', assertAck(socket,
     function onLeaveGame(room, player) {
       // Здесь должен обрабатываться сигнал о выходе из игры.
+
+      socket.broadcast.to(room.id).emit('playerLeft', {
+        playerIndex: room.ids.indexOf(player.id)
+      });
+      socket.leave(room.id);
     }
   ));
 
