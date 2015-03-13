@@ -72,7 +72,7 @@ function Room(id, options) {
     if (Object.keys(this.clients).length == 0) {
       this.del();
     }
-  }
+  };
 
   // Удаление комнаты
   this.del = function () {

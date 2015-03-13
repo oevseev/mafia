@@ -104,7 +104,7 @@ function Game(room, callback) {
 
   // Получение количества секунд до следующего таймаута
   this.getSecondsTillTimeout = function () {
-    return this.nextPhaseTimeout.getSeconds() - (new Date()).getSeconds();
+    return undefined;
   };
 
   // Получение победителя
