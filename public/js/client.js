@@ -64,8 +64,10 @@
 
     // События о входе/выходе игрока из комнаты
     socket.on('playerJoined', function onPlayerJoined(data) {
-      roomData.playerList.push(data.playerName);
-      UI.addPlayer(roomData.playerList.length - 1, data.playerName);
+      if (!data.wasInRoomBefore) {
+        roomData.playerList.push(data.playerName);
+        UI.addPlayer(roomData.playerList.length - 1, data.playerName);
+      }
       UI.logMessage("Игрок " + data.playerName + " присоединяется к игре.");
     });
     socket.on('playerLeft', function onPlayerLeft(data) {

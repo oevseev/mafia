@@ -39,13 +39,14 @@ function Room(id, options) {
     this.clients[playerID] = {
       id: playerID,
       playerName: playerName,
-      socket: socket
+      socket: socket,
+      disconnected: false
     };
     if (this.ids.indexOf(playerID) == -1) {
       this.ids.push(playerID);
     }
 
-    console.log("[RM] [%s] Игрок %s присоединяется к игре.", this.id,
+    console.log("[RM] [%s] Игрок %s подключается к комнате.", this.id,
       playerName);
 
     // Если число игроков превышает допустимое, запечатываем комнату.
@@ -66,12 +67,8 @@ function Room(id, options) {
   this.disconnect = function (playerID) {
     var playerName = this.clients[playerID].playerName;
 
-    delete this.clients[playerID];
-    console.log("[RM] [%s] Игрок %s выходит из игры.", this.id, playerName);
-
-    if (Object.keys(this.clients).length == 0) {
-      this.del();
-    }
+    this.clients[playerID].disconnected = true;
+    console.log("[RM] [%s] Игрок %s выходит из комнаты.", this.id, playerName);
   };
 
   // Удаление комнаты

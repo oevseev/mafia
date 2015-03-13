@@ -85,13 +85,21 @@ function onClientConnection(socket) {
     // Если игрока нет в комнате, но комната еще не запечатана
     if (!(playerID in room.clients)) {
       isFirstConnection = true;
-      // Добавляем игрока в комнату
-      room.connect(playerID, playerName, socket);
       // Оповещаем всех игроков о присоединении нового игрока
       socket.broadcast.to(room.id).emit('playerJoined', {
-        playerName: playerName
+        playerName: playerName,
+        wasInRoomBefore: false
       });
+      // Добавляем игрока в комнату
+      room.connect(playerID, playerName, socket);
     } else {
+      if (room.clients[playerID].disconnected) {
+        socket.broadcast.to(room.id).emit('playerJoined', {
+          playerName: playerName,
+          wasInRoomBefore: true
+        });
+        room.clients[playerID].disconnected = false;
+      }
       // Изменяем сокет
       room.clients[playerID].socket = socket;
     }
@@ -128,7 +136,7 @@ function onClientConnection(socket) {
       // Игроки, чья роль известна
       roomData.exposedPlayers = room.game.getExposedPlayers(playerID);
       // Количество секунд до следующего таймаута
-      roomData.secondsTillTimeout = room.game.getSecondsTillTimeout();
+      // roomData.secondsTillTimeout = room.game.getSecondsTillTimeout();
     }
 
     socket.emit('roomData', roomData);
