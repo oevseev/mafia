@@ -69,6 +69,18 @@ function Room(id, options) {
 
     this.clients[playerID].disconnected = true;
     console.log("[RM] [%s] Игрок %s выходит из комнаты.", this.id, playerName);
+
+    var needsDeletion = true;
+    for (var playerID in this.clients) {
+      if (!this.clients[playerID].disconnected) {
+        needsDeletion = false;
+        break;
+      }
+    }
+
+    if (needsDeletion) {
+      this.del();
+    }
   };
 
   // Удаление комнаты
