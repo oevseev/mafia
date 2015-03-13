@@ -13,6 +13,8 @@ block content
   h2= "Комната " + roomID
   h3#status= "Игра еще не началась"
 
+  a(href="javascript:void(0);")#leave= "Выйти"
+
   ol#players
   form#vote-form(action="javascript:void(0);")
     select#vote-player

@@ -21,6 +21,8 @@ function Game(room, callback) {
   this.roles = {};
   // Выбывшие игроки
   this.elimPlayers = [];
+  // Раскрытые детективом игроки
+  this.detExpPlayers = [];
   // Результаты голосования
   this.votes = {};
 
@@ -47,12 +49,10 @@ function Game(room, callback) {
     }
 
     // Назначение комиссара
-    /*
-    if (civilians) {
+    if (this.room.options.optionalRoles.detective && civilians) {
       var id = civilians[Math.floor(civilians.length * Math.random())];
       this.roles[id] = "detective";
     }
-    */
   };
 
   // Получение списка игроков, чья роль известна (в формате индекс-роль)
@@ -60,13 +60,23 @@ function Game(room, callback) {
     var exposedList = {};
 
     // Добавляем членов мафии
-    if (this.room.game.roles[playerID] == "mafia") {
+    if (this.roles[playerID] == "mafia") {
       var mafiaMembers = this.getMafia();
       for (var i = 0; i < mafiaMembers.length; i++) {
         exposedList[mafiaMembers[i]] = {
           role: "mafia",
           eliminated: false
         };
+      }
+    }
+
+    // Добавляем игроков, известных детективу
+    if (this.roles[playerID] == "detective") {
+      for (var i = 0; i < this.detExpPlayers.length; i++) {
+        exposedList[this.room.ids.indexOf(this.detExpPlayers[i])] = {
+          role: this.roles[this.detExpPlayers[i]],
+          eliminated: false
+        }
       }
     }
 
@@ -77,8 +87,6 @@ function Game(room, callback) {
         eliminated: true
       };
     }
-
-    // TODO: Игроки, раскрытые комиссаром
 
     return exposedList;
   };
@@ -92,6 +100,11 @@ function Game(room, callback) {
       }
     }
     return mafiaList;
+  };
+
+  // Получение количества секунд до следующего таймаута
+  this.getSecondsTillTimeout = function () {
+    return this.nextPhaseTimeout.getSeconds() - (new Date()).getSeconds();
   };
 
   // Получение победителя
@@ -162,14 +175,16 @@ function Game(room, callback) {
       phaseName = this.state.isDay ? "день" : "ночь";
     }
 
+    // Проверка на победу
+    var winner = this.getWinner();
+
     // Оповещаем игроков об обновлении состояния игры
     this.callback('update', {
       state: this.state,
-      outvotedPlayer: outvotedPlayer
+      outvotedPlayer: outvotedPlayer,
+      gameEnded: winner !== null
     });
 
-    // Проверка на победу
-    var winner = this.getWinner();
     if (winner === null) {
       // Переход к следующему ходу
       this.nextPhaseTimeout(timeout);

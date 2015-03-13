@@ -41,7 +41,7 @@ function Room(id, options) {
       playerName: playerName,
       socket: socket
     };
-    if (!(playerID in this.ids)) {
+    if (this.ids.indexOf(playerID) == -1) {
       this.ids.push(playerID);
     }
 
@@ -62,6 +62,18 @@ function Room(id, options) {
     }
   };
 
+  // Отключение от комнаты
+  this.disconnect = function (playerID) {
+    var playerName = this.clients[playerID].playerName;
+
+    delete this.clients[playerID];
+    console.log("[RM] [%s] Игрок %s выходит из игры.", this.id, playerName);
+
+    if (Object.keys(this.clients).length == 0) {
+      this.del();
+    }
+  }
+
   // Удаление комнаты
   this.del = function () {
     if (this.game) {
@@ -70,8 +82,8 @@ function Room(id, options) {
     }
 
     delete rooms[this.id];
-    if (pending.indexOf(this) > -1) {
-      pending.splice(pending.indexOf(this), 1);
+    if (pending.indexOf(this.id) > -1) {
+      pending.splice(pending.indexOf(this.id), 1);
     }
 
     console.log("[RM] Комната /id/%s/ удалена.", this.id);
@@ -95,7 +107,7 @@ function Room(id, options) {
 
     this.isSealed = true;
     // Удаляем комнату из списка доступных для поиска
-    pending.splice(pending.indexOf(this), 1);
+    pending.splice(pending.indexOf(this.id), 1);
 
     console.log("[RM] Комната /id/%s/ запечатана.", this.id);
   };

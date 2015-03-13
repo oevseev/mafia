@@ -114,7 +114,9 @@ function onClientConnection(socket) {
       // Может ли игрок начинать игру
       canStartGame: !room.game && (playerID === room.owner.id),
       // Список игроков в комнате
-      playerList: room.getPlayerList()
+      playerList: room.getPlayerList(),
+      // Настройки комнаты
+      options: room.options
     };
 
     // Если игра началась, добавляем информацию об игре
@@ -125,6 +127,8 @@ function onClientConnection(socket) {
       roomData.role = room.game.roles[playerID];
       // Игроки, чья роль известна
       roomData.exposedPlayers = room.game.getExposedPlayers(playerID);
+      // Количество секунд до следующего таймаута
+      roomData.secondsTillTimeout = room.game.getSecondsTillTimeout();
     }
 
     socket.emit('roomData', roomData);
@@ -149,10 +153,16 @@ function onClientConnection(socket) {
   // Выход из игры
   socket.on('leaveGame', assertAck(socket,
     function onLeaveGame(room, player) {
-      // Здесь должен обрабатываться сигнал о выходе из игры.
+      var role = null;
+      if (room.game) {
+        room.game.elimPlayers.push(player.id);
+        role = room.game.roles[player.id];
+      }
 
+      room.disconnect(player.id);
       socket.broadcast.to(room.id).emit('playerLeft', {
-        playerIndex: room.ids.indexOf(player.id)
+        playerIndex: room.ids.indexOf(player.id),
+        role: role
       });
       socket.leave(room.id);
     }

@@ -66,8 +66,18 @@
     socket.on('playerJoined', function onPlayerJoined(data) {
       roomData.playerList.push(data.playerName);
       UI.addPlayer(roomData.playerList.length - 1, data.playerName);
+      UI.logMessage("Игрок " + data.playerName + " присоединяется к игре.");
     });
-    socket.on('playerLeft', function onPlayerLeft(data) {});
+    socket.on('playerLeft', function onPlayerLeft(data) {
+      if (data.role) {
+        roomData.exposedPlayers[data.playerIndex] = {
+          role: data.role,
+          eliminated: true
+        }
+        UI.setPlayerRole(data.playerIndex, data.role);
+      }
+      UI.logMessage("Игрок #" + (data.playerIndex + 1) + " выходит из игры.");
+    });
 
     // События, касающиеся ретранслируемой информации
     socket.on('chatMessage', function onChatMessage(data) {
@@ -116,6 +126,11 @@
     setActions: function () {
       $('#chat-form').submit(UI.sendMessage);
       $('#vote-form').submit(UI.vote);
+
+      $('#leave').click(function () {
+        socket.emit('leaveGame');
+        $('body').text("Вы вышли из игры.");
+      });
     },
 
     // Добавление сообщения в чат
@@ -160,6 +175,7 @@
       if (data.canStartGame) {
         $('<a href="javascript:void(0)" id="start-game">').text(
           "Начать игру").insertAfter('#status');
+        $('<br>').insertAfter('#start-game');
         $('#start-game').click(function () {
           socket.emit('startGame');
         });
