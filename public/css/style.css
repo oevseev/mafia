@@ -1,0 +1,79 @@
+@import url("./GenJyuuGothic.css");
+
+body {
+    font-family: "GenJyuuGothic", sans-serif !important;
+    overflow: hidden;
+}
+
+body#notfound-page {
+    background-image: url("/img/bg-pattern.png");
+    background-repeat: repeat;
+}
+
+#notfound-page .container {
+    position: absolute;
+    width: 100%; height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#notfound-page h1, p {
+    margin: 0;
+}
+
+#notfound-page h1 {
+    line-height: 100%;
+
+    color: white;
+    font-size: 144pt;
+    font-weight: 800;
+}
+
+#notfound-page p {
+    color: LightGray;
+    font-size: 14pt;
+    font-weight: 200;
+}
+
+div.loading-window {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 400px; height: 150px;
+
+    margin-left: -200px;
+    margin-top: -75px;
+
+    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.5);
+}
+
+div.loading-window .header {
+    height: 50px;
+
+    line-height: 50px;
+    padding-left: 15px;
+
+    color: white;
+    background-color: Crimson;
+    font-size: 18pt;
+}
+
+div.loading-window .content {
+    height: 70px;
+
+    padding: 15px;
+
+    background-color: white;
+    font-size: 10pt;
+}
+
+div.loading-window .spinner {
+    position: absolute;
+    bottom: 15px; right: 15px;
+    width: 32px; height: 32px;
+
+    background-image: url("/img/spinner.gif");
+    background-repeat: no-repeat;
+}

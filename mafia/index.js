@@ -68,6 +68,7 @@ function onClientConnection(socket) {
 
     // Проверка на существование комнаты
     if (typeof room == 'undefined') {
+      socket.emit('roomDoesNotExist');
       return;
     }
 

@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Мафия</title>
-    <style>
-        .spoiler {
-            background-color: silver;
-            color: silver;
-        }
-        .spoiler:hover {
-            color: black;
-        }
-    </style>
-</head>
-<body>
-    <p>Дизайн пока идет <span class="spoiler">в пизду :p</span></p>
-    <ul>
-        <li><a href="/find/">Найти игру</a></li>
-        <li><a href="/new/">Играть с друзьями</a></li>
-    </ul>
-    <button onclick="setName()">Задать имя</button>
+<html lang="ru">
 
-    <script src="/libs/cookies.js"></script>
-    <script>
-        function setName() {
-            var playerName = prompt('Введите свое имя:');
-            if (playerName) {
-                Cookies.set('playerName', playerName);
-            }
-        }
-    </script>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Мафия — главная страница</title>
+
+    <link href="/css/style.css" rel="stylesheet"/>
+    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/lib/prefixfree/prefixfree.min.js"></script>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/cookies-js/dist/cookies.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="/js/main-page.js"></script>
+</head>
+
+<body id="index-page">
+    <button class="btn btn-default" id="find-game">Найти игру</button>
+    <button class="btn btn-default" id="new-game">Играть с друзьями</button>
 </body>
 </html>

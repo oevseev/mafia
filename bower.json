@@ -1,0 +1,15 @@
+{
+  "name": "mafia",
+  "version": "0.0.0",
+  "description": "Популярная игра «Мафия»",
+  "author": "Oleg Evseev <ixen.eoa@me.com>",
+  "homepage": "http://mafia.x3n.me/",
+  "private": true,
+  "main": "app.js",
+  "dependencies": {
+    "bootstrap": "~3.3.4",
+    "cookies-js": "~1.2.1",
+    "jquery": "~2.1.3",
+    "prefixfree": "*",
+  }
+}
