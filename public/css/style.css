@@ -34,23 +34,27 @@ body#index-page {
     background-repeat: no-repeat;
 }
 
-#index-page .container {
+.index-container {
+    position: relative; 
     width: 75%; height: 100%;
 
     display: flex;
     flex-direction: column;
 }
 
-.index-header, .index-footer {
+.index-container > * {
     width: 100%;
-    min-height: min-content;
+
+    margin: 0 auto;
 }
 
 .index-header {
-    padding: 1em 0;
+    margin-bottom: 1em;
 }
 
 .index-content {
+    overflow: auto;
+
     margin-top: 2em;
     margin-bottom: 1em;
 
@@ -97,10 +101,16 @@ body#index-page {
         padding: 24pt 0;
     }
 
+    .btn-huge {
+        font-size: 12pt;
+    }
+
+    .index-container {
+        width: 90%;
+    }
+
     .index-content {
-        overflow: auto;
-        margin-top: 0;
-        padding: 0.5em 0;
+        margin-top: 0.5em;
     }
 
     .index-content > h1 {
@@ -114,10 +124,6 @@ body#index-page {
     .index-author {
         margin-top: 1em;
         text-align: center;
-    }
-
-    .btn-huge {
-        font-size: 12pt;
     }
 }
 
@@ -171,7 +177,7 @@ body#notfound-page {
     background-color: FireBrick;
     font-size: 18pt;
 
-    border-radius: 8px 8px 0px 0px;
+    border-radius: 8px 8px 0 0;
 }
 
 #loading-window .content {
@@ -182,7 +188,7 @@ body#notfound-page {
     background-color: white;
     font-size: 10pt;
 
-    border-radius: 0px 0px 8px 8px;
+    border-radius: 0 0 8px 8px;
 }
 
 #loading-window .spinner {
