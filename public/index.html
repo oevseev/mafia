@@ -2,22 +2,48 @@
 <html lang="ru">
 
 <head>
-    <meta charset="UTF-8"/>
-    <title>Мафия — главная страница</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link href="/css/style.css" rel="stylesheet"/>
-    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <script src="/lib/prefixfree/prefixfree.min.js"></script>
+  <title>Мафия — главная страница</title>
 
-    <script src="/lib/jquery/dist/jquery.min.js"></script>
-    <script src="/lib/cookies-js/dist/cookies.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+  <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/css/style.css" rel="stylesheet"/>
+  <script src="/lib/prefixfree/prefixfree.min.js"></script>
 
-    <script src="/js/main-page.js"></script>
+  <script src="/lib/jquery/dist/jquery.min.js"></script>
+  <script src="/lib/cookies-js/dist/cookies.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script src="/js/main-page.js"></script>
 </head>
 
 <body id="index-page">
-    <button class="btn btn-default" id="find-game">Найти игру</button>
-    <button class="btn btn-default" id="new-game">Играть с друзьями</button>
+
+  <div class="container">
+    <div class="row index-header">
+      <div class="col logo"></div>
+      <!-- nav -->
+    </div>
+
+    <div class="row index-content">
+      <h1>Добро пожаловать!</h1>
+      <p>Мафия — это онлайн-игра, где вам предстоит либо взять на себя роль мирного жителя и
+      защитить город от мафии, либо самому стать мафиози и устроить расправу над горожанами.</p>
+      <p>Регистрация не требуется: задайте имя — и вы готовы к игре!</p>
+    </div>
+
+    <div class="row index-footer">
+      <div class="col-md-4 col-sm-6 col-md-push-8 col-sm-push-6 index-button">
+        <button class="btn btn-block btn-huge btn-primary" id="find-game">Найти игру</button>
+        <button class="btn btn-block btn-huge btn-default" id="new-game">Играть с друзьями</button>
+        <!-- <button class="btn btn-link" id="set-name">Задать имя</button> -->
+      </div>
+      <div class="col-md-8 col-sm-6 col-md-pull-4 col-sm-pull-6 index-author pull-down">
+        <div class="inner">© 2015, Oleg Evseev</div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

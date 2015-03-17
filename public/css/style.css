@@ -2,11 +2,94 @@
 
 body {
     font-family: "GenJyuuGothic", sans-serif !important;
-    overflow: hidden;
 }
 
+/**
+ * Главная страница
+ */
+
+body#index-page {
+    position: absolute;
+    width: 100%; height: 100%;
+
+    overflow: hidden;
+    padding: 50px 0;
+
+    background-image: url("/img/bg-pattern-light.png");
+    background-repeat: repeat;
+}
+
+.btn-huge {
+    padding: 16px;
+    line-height: normal;
+    border-radius: 8px;
+
+    font-size: 14pt;
+}
+
+.logo {
+    width: 170px; height: 53px;
+
+    background-image: url("/img/logo.png");
+    background-repeat: no-repeat;
+}
+
+#index-page .container {
+    width: 75%; height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.index-content {
+    flex: 1;
+    padding: 50px 0;
+}
+
+.index-content > * {
+    margin-bottom: 10pt;
+}
+
+.index-content > h1 {
+    font-size: 36pt;
+    font-weight: 800;
+}
+
+.index-content > p {
+    font-size: 16pt;
+}
+
+.index-author {
+    color: DarkGray;
+}
+
+@media(max-width: 768px) {
+    .index-content {
+        padding: 10px 0;
+    }
+
+    .index-content > h1 {
+        font-size: 20pt;
+        font-weight: 800;
+    }
+
+    .index-content > p {
+        font-size: 12pt;
+    }
+
+    .index-author {
+        margin-top: 20px;
+        text-align: center;
+    }
+}
+
+/**
+ * Страница 404
+ */
+
 body#notfound-page {
-    background-image: url("/img/bg-pattern.png");
+    background-color: #404040;
+    background-image: url("/img/bg-pattern-dark.png");
     background-repeat: repeat;
 }
 
@@ -37,6 +120,10 @@ body#notfound-page {
     font-size: 14pt;
     font-weight: 200;
 }
+
+/**
+ * Окошко загрузки
+ */
 
 div.loading-window {
     position: absolute;

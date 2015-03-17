@@ -10,6 +10,6 @@
     "bootstrap": "~3.3.4",
     "cookies-js": "~1.2.1",
     "jquery": "~2.1.3",
-    "prefixfree": "*",
+    "prefixfree": "*"
   }
 }
