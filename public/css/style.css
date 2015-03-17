@@ -13,14 +13,14 @@ body#index-page {
     width: 100%; height: 100%;
 
     overflow: hidden;
-    padding: 50px 0;
+    padding: 48pt 0;
 
     background-image: url("/img/bg-pattern-light.png");
     background-repeat: repeat;
 }
 
 .btn-huge {
-    padding: 16px;
+    padding: 1em;
     line-height: normal;
     border-radius: 8px;
 
@@ -41,13 +41,22 @@ body#index-page {
     flex-direction: column;
 }
 
+.index-header {
+    min-height: min-content;
+
+    padding: 1em 0;
+}
+
 .index-content {
+    margin-top: 2em;
+    margin-bottom: 1em;
+
     flex: 1;
-    padding: 50px 0;
 }
 
 .index-content > * {
-    margin-bottom: 10pt;
+    margin-top: 0;
+    margin-bottom: 0.5em;
 }
 
 .index-content > h1 {
@@ -64,13 +73,17 @@ body#index-page {
 }
 
 @media(max-width: 768px) {
+    body#index-page {
+        padding: 24pt 0;
+    }
     .index-content {
-        padding: 10px 0;
+        overflow: auto;
+        margin-top: 0;
+        padding: 0.5em 0;
     }
 
     .index-content > h1 {
         font-size: 20pt;
-        font-weight: 800;
     }
 
     .index-content > p {
@@ -78,8 +91,16 @@ body#index-page {
     }
 
     .index-author {
-        margin-top: 20px;
+        margin-top: 1em;
         text-align: center;
+    }
+
+    .btn-huge {
+        padding: 1em;
+        line-height: normal;
+        border-radius: 8px;
+
+        font-size: 12pt;
     }
 }
 
