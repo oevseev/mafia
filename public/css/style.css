@@ -41,9 +41,12 @@ body#index-page {
     flex-direction: column;
 }
 
-.index-header {
+.index-header, .index-footer {
+    width: 100%;
     min-height: min-content;
+}
 
+.index-header {
     padding: 1em 0;
 }
 
@@ -72,10 +75,28 @@ body#index-page {
     color: DarkGray;
 }
 
+@media(min-width: 768px) {
+    .index-footer {
+        height: min-content;
+        display: table;
+    }
+
+    .index-footer > * {
+        height: 100%;
+        display: table-cell;
+    }
+
+    .index-author .inner {
+        position: absolute;
+        bottom: 0;
+    }
+}
+
 @media(max-width: 768px) {
     body#index-page {
         padding: 24pt 0;
     }
+
     .index-content {
         overflow: auto;
         margin-top: 0;
@@ -96,10 +117,6 @@ body#index-page {
     }
 
     .btn-huge {
-        padding: 1em;
-        line-height: normal;
-        border-radius: 8px;
-
         font-size: 12pt;
     }
 }
@@ -146,38 +163,29 @@ body#notfound-page {
  * Окошко загрузки
  */
 
-div.loading-window {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 400px; height: 150px;
-
-    margin-left: -200px;
-    margin-top: -75px;
-
-    box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.5);
-}
-
-div.loading-window .header {
-    height: 50px;
-
-    line-height: 50px;
-    padding-left: 15px;
+#loading-window .header {
+    line-height: 2em;
+    padding: 0 12pt;
 
     color: white;
-    background-color: Crimson;
+    background-color: FireBrick;
     font-size: 18pt;
+
+    border-radius: 8px 8px 0px 0px;
 }
 
-div.loading-window .content {
-    height: 70px;
+#loading-window .content {
+    height: 8em;
 
-    padding: 15px;
+    padding: 12pt;
 
     background-color: white;
     font-size: 10pt;
+
+    border-radius: 0px 0px 8px 8px;
 }
 
-div.loading-window .spinner {
+#loading-window .spinner {
     position: absolute;
     bottom: 15px; right: 15px;
     width: 32px; height: 32px;

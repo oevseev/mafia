@@ -8,10 +8,12 @@
   <title>Мафия — главная страница</title>
 
   <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
   <link href="/css/style.css" rel="stylesheet"/>
   <script src="/lib/prefixfree/prefixfree.min.js"></script>
 
   <script src="/lib/jquery/dist/jquery.min.js"></script>
+  <script src="/lib/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="/lib/cookies-js/dist/cookies.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
 
@@ -39,9 +41,17 @@
         <button class="btn btn-block btn-huge btn-default" id="new-game">Играть с друзьями</button>
         <!-- <button class="btn btn-link" id="set-name">Задать имя</button> -->
       </div>
-      <div class="col-md-8 col-sm-6 col-md-pull-4 col-sm-pull-6 index-author pull-down">
+      <div class="col-md-8 col-sm-6 col-md-pull-4 col-sm-pull-6 index-author">
         <div class="inner">© 2015, Oleg Evseev</div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="loading-window">
+    <div class="modal-dialog">
+      <div class="header">Подождите...</div>
+      <div class="content">Идет создание комнаты.</div>
+      <div class="spinner"></div>
     </div>
   </div>
 
