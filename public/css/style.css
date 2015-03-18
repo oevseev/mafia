@@ -76,13 +76,19 @@ body#index-page {
 }
 
 .index-author {
+    overflow: hidden;
     color: DarkGray;
 }
 
 @media(min-width: 768px) {
     .index-footer {
-        height: min-content;
         display: table;
+    }
+
+    .index-footer [class*="col-"] {
+        float: none;
+        display: table-cell;
+        vertical-align: top;
     }
 
     .index-footer > * {

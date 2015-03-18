@@ -2,14 +2,18 @@ extends base
 
 block vars
   - var title = "Мафия — комната " + roomID
-  - var body_id = "room-page"
+  - var body_id = "client-page"
 
 block includes
-  link(href="/lib/bootstrap/dist/css/bootstrap.min.css", rel="stylesheet")
+  link(href="/css/client.css", rel="stylesheet")
 
-  script(src="/lib/cookies-js/dist/cookies.min.js")
   script(src="/lib/jquery/dist/jquery.min.js")
+  script(src="/lib/bootstrap/dist/js/bootstrap.min.js")
+  script(src="/lib/cookies-js/dist/cookies.min.js")
   script(src="/socket.io/socket.io.js")
+
+block content
+  include room.html
 
   script(type="text/javascript").
     var userData = {
@@ -18,6 +22,3 @@ block includes
       playerName: Cookies('playerName')
     };
   script(src="/js/client.js")
-
-block content
-  include room.html

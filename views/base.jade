@@ -8,10 +8,12 @@ html(lang="ru")
     title= title
     meta(charset="utf-8")
 
+    link(href="/lib/bootstrap/dist/css/bootstrap.min.css", rel="stylesheet")
     link(href="/css/style.css", rel="stylesheet")
-    script(src="/lib/prefixfree/prefixfree.min.js")
 
     block includes
+
+    script(src="/lib/prefixfree/prefixfree.min.js")
 
   body(id=body_id)
     block content
