@@ -34,6 +34,10 @@ body#index-page {
     background-repeat: no-repeat;
 }
 
+/**
+ * Содержимое главной страницы
+ */
+
 .index-container {
     position: relative; 
     width: 75%; height: 100%;
@@ -80,6 +84,10 @@ body#index-page {
     color: DarkGray;
 }
 
+/**
+ * Адаптивный дизайн для экранов меньше 768px в ширину
+ */
+
 @media(min-width: 768px) {
     .index-footer {
         display: table;
@@ -99,6 +107,10 @@ body#index-page {
     .index-author .inner {
         position: absolute;
         bottom: 0;
+    }
+
+    #loading-window .modal-dialog {
+        width: 32em;
     }
 }
 

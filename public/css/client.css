@@ -1,0 +1,95 @@
+body#client-page {
+    height: 100%;
+    z-index: 0;
+
+    overflow: hidden;
+
+    background-color: #404040;
+    background-image: url("/img/bg-pattern-dark.png");
+    background-repeat: repeat;
+}
+
+/**
+ * Строка заголовка
+ */
+
+.client-navbar {
+    position: relative;
+    height: 50px;
+    z-index: 1;
+
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+}
+
+.client-navbar.navbar-collapse.collapse {
+    display: block;
+}
+
+.client-navbar .nav-logo {
+    width: 128px; height: 50px;
+
+    padding: 5px 0;
+}
+
+/**
+ * Экран игры
+ */
+
+.client-main {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 50px);
+
+    padding: 0;
+
+    display: flex;
+}
+
+.client-left {
+    width: 320px;
+
+    color: white;
+}
+
+.client-right {
+    background-color: white;
+
+    flex: 1;
+}
+
+@media(max-width: 768px) {
+    /**
+     * Нижеприведенный код — ужасный костыль, но работает.
+     * Так как я — не верстальщик, оставлю пока как есть, потому что мне лень
+     * с этим возиться.
+     */
+
+    .client-navbar .navbar-nav {
+        float: left;
+        margin-top: 5px;
+    }
+
+    .client-navbar .navbar-nav > li {
+        float: left;
+    }
+
+    .client-navbar .navbar-nav.navbar-right:last-child {
+        margin-right: -15px;
+    }
+
+    .client-navbar .navbar-right {
+        float: right;
+    }
+
+    /**
+     * Адаптация экрана игры
+     */
+
+    .client-left {
+        width: 192px;
+    }
+}

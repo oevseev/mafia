@@ -2,13 +2,19 @@ extends base
 
 block vars
   - var title = "Мафия — комната " + roomID
+  - var full_width = true
   - var body_id = "client-page"
 
 block includes
+  link(href="/lib/animate.css/animate.min.css", rel="stylesheet")
   link(href="/css/client.css", rel="stylesheet")
 
   script(src="/lib/jquery/dist/jquery.min.js")
+  script(src="/lib/sprintf/dist/sprint.min.js")
+
   script(src="/lib/bootstrap/dist/js/bootstrap.min.js")
+  script(src="/lib/bootbox/bootbox.js")
+
   script(src="/lib/cookies-js/dist/cookies.min.js")
   script(src="/socket.io/socket.io.js")
 
@@ -21,4 +27,5 @@ block content
       playerID: Cookies('playerID'),
       playerName: Cookies('playerName')
     };
+
   script(src="/js/client.js")
