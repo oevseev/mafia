@@ -49,16 +49,163 @@ body#client-page {
     display: flex;
 }
 
+/**
+ * Левая панель экрана игры
+ */
+
 .client-left {
     width: 320px;
 
-    color: white;
+    overflow: auto;
 }
 
-.client-right {
+.player-list, .player-list > li {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.player-list > li {
+    padding: 0.75em 1em;
+
+    font-size: 12pt;
+}
+
+.player-list > li:nth-child(odd) {
     background-color: white;
+}
+
+.player-list > li:nth-child(even) {
+    background-color: WhiteSmoke;
+}
+
+.player-index {
+    width: 2em;
+
+    display: inline-block;
+    float: left;
+
+    color: white;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.player-name {
+    padding: 0 0.5em;
+}
+
+.player-name.me {
+    font-weight: bold;
+}
+
+.player-name.disconnected {
+    color: silver;
+}
+
+.player-name.eliminated {
+    color: silver;
+    text-decoration: line-through;
+}
+
+.player-aux {
+    color: silver;
+    font-size: 8pt;
+}
+
+.player-role-icon {
+    float: right;
+}
+
+/**
+ * Правая панель экрана игры
+ */
+
+.client-right {
+    z-index: 0;
+
+    background-color: white;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.25);
 
     flex: 1;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.status-window {
+    height: 128px;
+}
+
+.chat-window {
+    overflow: auto;
+
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+
+    flex: 1;
+}
+
+.submit-window {
+    padding: 5px;
+}
+
+.bg-day .status-window {
+    background-color: WhiteSmoke;
+}
+
+.bg-day .chat-window {
+    border-color: LightGray;
+
+    background-color: white;
+    background-image: url("/img/chat-bg-day.png");
+}
+
+.bg-day .submit-window {
+    background-color: WhiteSmoke;
+}
+
+.bg-night .status-window {
+    background-color: #484848;
+}
+
+.bg-night .chat-window {
+    border-color: #4c4c4c;
+
+    background-color: #3c3c3c;
+    background-image: url("/img/chat-bg-night.png");
+}
+
+.bg-night .submit-window {
+    background-color: #3c3c3c;
+}
+
+.bg-night .message-field {
+    border-color: #404040;
+
+    color: LightGray;
+    background-color: black;
+}
+
+.bg-night .submit-button {
+    border-color: #404040;
+
+    color: LightGray;
+    background-color: #1c1c1c;
+}
+
+.bg-night .submit-button:hover, 
+.bg-night .submit-button:focus, 
+.bg-night .submit-button:active {
+    background-color: #303030;
+}
+
+.bg-night .submit-button.disabled {
+    color: DarkGray;
 }
 
 @media(max-width: 768px) {

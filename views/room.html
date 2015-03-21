@@ -18,6 +18,29 @@
 </nav>
 
 <div class="client-main">
-  <div class="client-left"></div>
-  <div class="client-right"></div>
+  <div class="client-left">
+    <ul class="player-list" id="player-list"></ul>
+  </div>
+
+  <div class="client-right bg-day">
+    <div class="status-window">
+      <!-- TODO: Наполнить статусное окно контентом -->
+    </div>
+
+    <div class="chat-window">
+      <ul class="chat-list" id="chat-list"></ul>
+    </div>
+
+    <div class="submit-window">
+      <form action="#">
+        <div class="input-group">
+          <input class="form-control message-field" name="message" type="text"
+            maxlength="256" placeholder="Сообщение в чат (макс. 256 символов)"/>
+          <span class="input-group-btn">
+            <button class="btn btn-default submit-button" type="submit">Отправить</button>
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
