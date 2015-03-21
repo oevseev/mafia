@@ -87,33 +87,35 @@ body#client-page {
     float: left;
 
     color: white;
+    background-color: black;
     border-radius: 3px;
+    font-style: normal;
     text-align: center;
 }
 
-.player-name {
+.player-list .player-name {
     padding: 0 0.5em;
 }
 
-.player-name.me {
+.player-list .player-name.me {
     font-weight: bold;
 }
 
-.player-name.disconnected {
+.player-list .player-name.disconnected {
     color: silver;
 }
 
-.player-name.eliminated {
+.player-list .player-name.eliminated {
     color: silver;
     text-decoration: line-through;
 }
 
-.player-aux {
+.player-list .player-aux {
     color: silver;
     font-size: 8pt;
 }
 
-.player-role-icon {
+.player-list .player-role-icon {
     float: right;
 }
 
@@ -138,7 +140,10 @@ body#client-page {
 }
 
 .chat-window {
-    overflow: auto;
+    position: relative;
+    width: 100%; height: 100%;
+
+    overflow: none;
 
     border-top: 1px solid;
     border-bottom: 1px solid;
@@ -148,6 +153,41 @@ body#client-page {
     background-position: left bottom;
 
     flex: 1;
+}
+
+.chat-list, .chat-list > li {
+    display: block;
+    list-style: none;
+}
+
+.chat-list {
+    position: absolute;
+    bottom: 0;
+    width: 100%; max-height: 100%;
+
+    overflow: auto;
+    margin: 0;
+    padding: 10px;
+}
+
+.chat-list > li {
+    margin: 2px 0px;
+}
+
+.chat-list .player-index {
+    float: none;
+    margin: 0 0.125em;
+
+    font-size: 10pt;
+}
+
+.chat-list .player-name {
+    margin: 0 0.25em;
+    font-weight: bold;
+}
+
+.log-message {
+    font-style: italic;
 }
 
 .submit-window {

@@ -126,7 +126,7 @@ function Room(id, options) {
       // Текущее состояние игры
       roomData.state = this.game.state;
       // Роль игрока
-      roomData.role = this.game.roles[playerID];
+      roomData.role = this.game.roles[this.clients[playerID]];
       // Игроки, чья роль известна
       roomData.exposedPlayers = this.game.getExposedPlayers(playerID);
       // Количество секунд до следующего таймаута
