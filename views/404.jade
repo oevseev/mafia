@@ -2,7 +2,10 @@ extends base
 
 block vars
   - var title = "404 Not Found"
+  - var full_width = false
+  - var body_id = "notfound-page"
 
 block content
-  h1= "404 Not Found"
-  p= message
+  div.container
+    h1= "404"
+    p= message

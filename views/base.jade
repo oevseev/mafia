@@ -3,9 +3,22 @@ doctype html
 block vars
 
 html(lang="ru")
+
   head
-    title #{title}
+    title= title
     meta(charset="utf-8")
+
+    if full_width
+      meta(viewport="width=1024")
+    else
+      meta(viewport="width=device-width, initial-scale=1")
+
+    link(href="/lib/bootstrap/dist/css/bootstrap.min.css", rel="stylesheet")
+    link(href="/css/style.css", rel="stylesheet")
+
     block includes
-  body
+
+    script(src="/lib/prefixfree/prefixfree.min.js")
+
+  body(id=body_id)
     block content

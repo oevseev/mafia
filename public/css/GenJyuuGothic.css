@@ -1,0 +1,40 @@
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: 200;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-ExtraLight.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: 300;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Light.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Normal.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: 500;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Regular.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: 600;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Medium.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: bold;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Bold.woff");
+}
+
+@font-face {
+    font-family: GenJyuuGothic;
+    font-weight: 800;
+    src: url("http://www.x3n.me/genjyuu-woff/GenJyuuGothic-Heavy.woff");
+}

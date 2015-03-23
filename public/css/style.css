@@ -1,0 +1,219 @@
+@import url("./GenJyuuGothic.css");
+
+body {
+    font-family: "GenJyuuGothic", sans-serif !important;
+}
+
+/**
+ * Главная страница
+ */
+
+body#index-page {
+    position: absolute;
+    width: 100%; height: 100%;
+
+    overflow: hidden;
+    padding: 48pt 0;
+
+    background-image: url("/img/bg-pattern-light.png");
+    background-repeat: repeat;
+}
+
+.btn-huge {
+    padding: 1em;
+    line-height: normal;
+    border-radius: 8px;
+
+    font-size: 14pt;
+}
+
+.logo {
+    width: 170px; height: 53px;
+
+    background-image: url("/img/logo.png");
+    background-repeat: no-repeat;
+}
+
+/**
+ * Содержимое главной страницы
+ */
+
+#index-container {
+    position: relative; 
+    width: 75%; height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+#index-container > * {
+    width: 100%;
+
+    margin: 0 auto;
+}
+
+#index-header {
+    margin-bottom: 1em;
+}
+
+#index-content {
+    overflow: auto;
+
+    margin-top: 2em;
+    margin-bottom: 1em;
+
+    flex: 1;
+}
+
+#index-content > * {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+#index-content > h1 {
+    font-size: 36pt;
+    font-weight: 800;
+}
+
+#index-content > p {
+    font-size: 16pt;
+}
+
+#index-author {
+    overflow: hidden;
+    color: DarkGray;
+}
+
+/**
+ * Адаптивный дизайн для экранов меньше 768px в ширину
+ */
+
+@media(min-width: 768px) {
+    #index-footer {
+        display: table;
+    }
+
+    #index-footer [class*="col-"] {
+        float: none;
+        display: table-cell;
+        vertical-align: top;
+    }
+
+    #index-footer > * {
+        height: 100%;
+        display: table-cell;
+    }
+
+    #index-author .inner {
+        position: absolute;
+        bottom: 0;
+    }
+
+    #loading-window .modal-dialog {
+        width: 32em;
+    }
+}
+
+@media(max-width: 768px) {
+    body#index-page {
+        padding: 24pt 0;
+    }
+
+    .btn-huge {
+        font-size: 12pt;
+    }
+
+    #index-container {
+        width: 90%;
+    }
+
+    #index-content {
+        margin-top: 0.5em;
+    }
+
+    #index-content > h1 {
+        font-size: 20pt;
+    }
+
+    #index-content > p {
+        font-size: 12pt;
+    }
+
+    #index-author {
+        margin-top: 1em;
+        text-align: center;
+    }
+}
+
+/**
+ * Страница 404
+ */
+
+body#notfound-page {
+    background-color: #404040;
+    background-image: url("/img/bg-pattern-dark.png");
+    background-repeat: repeat;
+}
+
+#notfound-page .container {
+    position: absolute;
+    width: 100%; height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#notfound-page h1, p {
+    margin: 0;
+}
+
+#notfound-page h1 {
+    line-height: 100%;
+
+    color: white;
+    font-size: 144pt;
+    font-weight: 800;
+}
+
+#notfound-page p {
+    color: LightGray;
+    font-size: 14pt;
+    font-weight: 200;
+}
+
+/**
+ * Окошко загрузки
+ */
+
+#loading-window .header {
+    line-height: 2em;
+    padding: 0 12pt;
+
+    color: white;
+    background-color: FireBrick;
+    font-size: 18pt;
+
+    border-radius: 8px 8px 0 0;
+}
+
+#loading-window .content {
+    height: 8em;
+
+    padding: 12pt;
+
+    background-color: white;
+    font-size: 10pt;
+
+    border-radius: 0 0 8px 8px;
+}
+
+#loading-window .spinner {
+    position: absolute;
+    bottom: 15px; right: 15px;
+    width: 32px; height: 32px;
+
+    background-image: url("/img/spinner.gif");
+    background-repeat: no-repeat;
+}

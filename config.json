@@ -29,7 +29,7 @@
 
         // Дополнительные роли
         "optionalRoles": {
-            "detective": false      // Комиссар
+            "detective": true       // Комиссар
         }
     }
 }

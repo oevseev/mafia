@@ -9,20 +9,6 @@ var mafia = require('./mafia');
 // Создаем объект роутера, который будет экспортироваться
 var router = express.Router();
 
-// Кнопки в главном меню игры
-router.get('/find', function (req, res) {
-  res.render('loading', {
-    eventName: 'findRoom',
-    message: "Идет поиск игры."
-  });
-});
-router.get('/new', function (req, res) {
-  res.render('loading', {
-    eventName: 'newRoom',
-    message: "Идет создание комнаты."
-  });
-});
-
 // Комната с выбранным ID
 router.get(/^\/id\/([a-zA-Z0-9]{8})$/, function(req, res) {
   var roomID = req.params[0];

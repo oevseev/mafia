@@ -1,0 +1,48 @@
+<nav id="client-navbar" class="navbar navbar-inverse">
+  <div class="container-fluid">
+
+    <a href="/"><img class="nav-logo" src="/img/logo-white.png"/></a>
+
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+          aria-expanded="false">Настройки <span class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+          <li><a id="nav-change-name" href="#">Изменить имя...</a></li>
+        </ul>
+      </li>
+      <li><a id="nav-leave-game" href="#">Выход</a></li>
+    </ul>
+
+  </div>
+</nav>
+
+<div id="client-main">
+
+  <div id="client-left">
+    <ul id="player-list"></ul>
+  </div>
+
+  <div id="client-right" class="bg-day">
+
+    <!-- <div id="status-window"></div> -->
+
+    <div id="chat-window">
+      <ul id="chat-list"></ul>
+    </div>
+
+    <div id="submit-window">
+      <form id="chat-form" action="javascript:void(0);">
+        <div class="input-group">
+          <input id="chat-input" class="form-control" name="message" type="text"
+            maxlength="256" placeholder="Сообщение в чат (макс. 256 символов)"/>
+          <span class="input-group-btn">
+            <button id="chat-submit" class="btn btn-default" type="submit">Отправить</button>
+          </span>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+</div>

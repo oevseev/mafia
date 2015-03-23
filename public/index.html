@@ -1,34 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Мафия</title>
-    <style>
-        .spoiler {
-            background-color: silver;
-            color: silver;
-        }
-        .spoiler:hover {
-            color: black;
-        }
-    </style>
-</head>
-<body>
-    <p>Дизайн пока идет <span class="spoiler">в пизду :p</span></p>
-    <ul>
-        <li><a href="/find/">Найти игру</a></li>
-        <li><a href="/new/">Играть с друзьями</a></li>
-    </ul>
-    <button onclick="setName()">Задать имя</button>
+<html lang="ru">
 
-    <script src="/libs/cookies.js"></script>
-    <script>
-        function setName() {
-            var playerName = prompt('Введите свое имя:');
-            if (playerName) {
-                Cookies.set('playerName', playerName);
-            }
-        }
-    </script>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Мафия — главная страница</title>
+
+  <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <link href="/css/style.css" rel="stylesheet"/>
+  <script src="/lib/prefixfree/prefixfree.min.js"></script>
+
+  <script src="/lib/jquery/dist/jquery.min.js"></script>
+  <script src="/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script src="/js/main-page.js"></script>
+</head>
+
+<body id="index-page">
+
+  <div id="index-container" class="container">
+    <div id="index-header" class="row">
+      <div class="col logo"></div>
+      <!-- TODO: Добавить навигацию -->
+    </div>
+
+    <div id="index-content" class="row">
+      <h1>Добро пожаловать!</h1>
+      <p>Мафия — это онлайн-игра, где вам предстоит либо взять на себя роль мирного жителя и
+      защитить город от мафии, либо самому стать мафиози и устроить расправу над горожанами.</p>
+      <p>Регистрация не требуется: задайте имя — и вы готовы к игре!</p>
+    </div>
+
+    <div id="index-footer" class="row">
+      <div id="index-buttons" class="col-md-4 col-sm-6 col-md-push-8 col-sm-push-6">
+        <button id="find-game" class="btn btn-block btn-huge btn-primary">Найти игру</button>
+        <button id="new-game" class="btn btn-block btn-huge btn-default">Играть с друзьями</button>
+      </div>
+      <div id="index-author" class="col-md-8 col-sm-6 col-md-pull-4 col-sm-pull-6">
+        <div class="inner">© 2015, Oleg Evseev</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-window" class="modal">
+    <div class="modal-dialog">
+      <div class="header">Подождите...</div>
+      <div class="content">Идет создание комнаты.</div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
 </body>
 </html>
