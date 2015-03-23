@@ -286,6 +286,14 @@ function Game(room, callback) {
       if (typeof this.room.getPlayerByIndex(data.vote) != 'undefined') {
         this.votes[playerIndex] = data.vote;
 
+        callbacks.confirmed({
+          roomID: this.getChatRoomID(player),
+          voteData: {
+            playerIndex: playerIndex,
+            vote: data.vote
+          }
+        });
+
         console.log("[GAME] [%s] Игрок %s голосует против игрока %s.",
           this.room.id, player.playerName, this.room.getPlayerByIndex(
             data.vote).playerName);

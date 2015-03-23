@@ -91,12 +91,12 @@
       });
 
       if (data.mafiaMembers) {
-        for (var playerIndex in data.mafiaMembers) {
-          roomData.exposedPlayers[playerIndex] = {
+        for (var i = 0; i < data.mafiaMembers.length; i++) {
+          roomData.exposedPlayers[data.mafiaMembers[i]] = {
             role: 'mafia',
             eliminated: false
           };
-          UI.setPlayerInfo(playerIndex, {
+          UI.setPlayerInfo(data.mafiaMembers[i], {
             role: 'mafia'
           });
         }
@@ -171,6 +171,8 @@
         } else {
           UI.logMessage("Победили мирные жители!");
         }
+
+        UI.updateState(null);
       }
     });
 
@@ -297,6 +299,7 @@
       $('#nav-change-name').click(UI.changePlayerName);
       $('#nav-leave-game').click(UI.leaveGame);
 
+      // Отправка сообщения
       $('#chat-form').submit(UI.sendMessage);
     },
 
@@ -556,10 +559,10 @@
         (!state.isDay && roomData.role != 'mafia')));
 
       var bgClass = 'bg-';
-      if (state && state.isDay) {
-        bgClass += 'day';
-      } else {
+      if (state && !state.isDay) {
         bgClass += 'night';
+      } else {
+        bgClass += 'day';
       }
 
       $('#client-right').removeClass().addClass(bgClass);
@@ -614,7 +617,7 @@
       // Форматирование
       var msgText = message
         .replace(/##/g, '<span class="player-index">%d</span>')
-        .replace(/\*(.*)\*/, '<strong>$1</strong>');
+        .replace(/\*(.*?)\*/, '<strong>$1</strong>');
       msgText = vsprintf(msgText, args);
 
       var $message = $('<li class="log-message">').html(msgText);
