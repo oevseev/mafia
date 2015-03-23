@@ -146,12 +146,10 @@ function Room(id, options) {
   this.disconnect = function (player, callback) {
     player.disconnected = true;
 
-    if (callback) {
-      callback({
-        playerIndex: this.getPlayerIndex(player),
-        role: this.game ? this.game.roles[player] : null
-      });
-    }
+    callback({
+      playerIndex: this.getPlayerIndex(player),
+      role: this.game ? this.game.roles[player] : null
+    });
 
     console.log("[RM] [%s] Игрок %s выходит из комнаты.",
       this.id, player.playerName);
@@ -271,15 +269,76 @@ function Room(id, options) {
   };
 
   /**
+   * Обновление таймаута комнаты
+   */
+  this.updateRoomTimeout = function (newRoomTimeout, inactiveRoomTimeout) {
+    var timeout = this.game ? inactiveRoomTimeout : newRoomTimeout;
+    this.setRoomTimeout(timeout);
+  };
+
+  /**
    * Начало игры.
    */
-  this.startGame = function (callback, timeout) {
+  this.startGame = function (callback) {
     this.seal();
     gameManager.newGame(this, callback);
+  };
 
-    // Установка таймаута на удаление после периода неактивности
-    this.setRoomTimeout(timeout);
-  }
+  /**
+   * Обработка голосования
+   */
+  this.handleVote = function (player, data, callbacks) {
+    if (data && this.game) {
+      this.game.handleVote(player, data.vote, callbacks);
+    } else {
+      callbacks.rejected({
+        // voteID: data.voteID
+      });
+    }
+  };
+
+  /**
+   * Обработка выбора
+   */
+  this.handleChoice = function (player, data, callbacks) {
+    if (data && this.game) {
+      this.game.handleChoice(player, data.choice, callbacks);
+    } else {
+      callbacks.rejected({
+        // choiceID: data.choiceID
+      });
+    }
+  };
+
+  /**
+   * Обработка сообщения чата
+   */
+  this.handleChatMessage = function (player, data, callbacks) {
+    if (data) {
+      var roomID = this.game ? this.game.getChatRoomID(player) : this.id;
+
+      if (roomID) {
+        callbacks.confirmed({
+          roomID: roomID,
+          // messageID: data.messageID
+          messageData: {
+            playerIndex: this.getPlayerIndex(player),
+            message: data.message
+          }
+        });
+
+        console.log("[CHAT] %s: %s", player.playerName, data.message);
+      } else {
+        callbacks.rejected({
+          // messageID: data.messageID
+        });
+      }
+    } else {
+      callbacks.rejected({
+        // messageID: data.messageID
+      });
+    }
+  };  
 }
 
 /**

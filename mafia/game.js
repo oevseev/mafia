@@ -84,7 +84,9 @@ function Game(room, callback) {
     }
   };
 
-  // Получение списка игроков, чья роль известна (в формате индекс-роль)
+  /**
+   * Получение списка игроков, чья роль известна (в формате индекс-роль)
+   */
   this.getExposedPlayers = function (player) {
     var exposedList = {};
 
@@ -122,7 +124,9 @@ function Game(room, callback) {
     return exposedList;
   };
 
-  // Получение индексов игроков-мафиози
+  /**
+   * Получение индексов игроков-мафиози
+   */
   this.getMafia = function () {
     var mafiaList = [];
     for (var player in this.roles) {
@@ -133,12 +137,16 @@ function Game(room, callback) {
     return mafiaList;
   };
 
-  // Получение количества секунд до следующего таймаута
+  /**
+   * Получение количества секунд до следующего таймаута
+   */
   this.getSecondsTillTimeout = function () {
     return undefined;
   };
 
-  // Получение победителя
+  /**
+   * Получение победителя
+   */
   this.getWinner = function () {
     // Подсчет числа активных игроков по ролям
     var civilian_count = 0, mafia_count = 0;
@@ -264,7 +272,8 @@ function Game(room, callback) {
   /**
    * Обработка голосования
    */
-  this.processVote = function (player, vote) {
+  this.handleVote = function (player, vote, callbacks) {
+    /*
     // Голосовали ли за игрока
     var wasVoted = (player in this.votes);
     // Выбыл ли игрок
@@ -281,6 +290,7 @@ function Game(room, callback) {
           this.room.id, player.playerName, votedPlayer.playerName);
       }
     }
+    */
   };
 
   /**
@@ -333,6 +343,23 @@ function Game(room, callback) {
       playerIndex: this.room.getPlayerIndex(candidate),
       role: this.roles[candidate]
     };
+  };
+
+  /**
+   * Обработка пользовательского выбора
+   */
+  this.handleChoice = function (player, choice, callbacks) {
+  };
+
+  /**
+   * Получение ID комнаты, в которую может отправлять сообщения игрок
+   */
+  this.getChatRoomID = function (player) {
+    if (!this.state.isDay && (this.roles[player] == 'mafia')) {
+      return (this.room.id + '_m'); // Чат мафии
+    } else if (this.state.isDay) {
+      return this.room.id; // Общий чат
+    }
   };
 
   /**

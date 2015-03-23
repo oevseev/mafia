@@ -22,6 +22,8 @@ function assertAck(socket, callback) {
       return;
     }
     callback(socket.userData.room, socket.userData.player, data);
+    socket.userData.room.updateRoomTimeout(
+      config.newRoomTimeout, config.inactiveRoomTimeout);
   };
 }
 
@@ -97,6 +99,9 @@ function onClientConnection(socket) {
       success: function (userData, roomData) {
         socket.userData = userData;
         socket.join(room.id);
+        if (roomData.role == 'mafia') {
+          socket.join(room.id + '_m');
+        }
         socket.emit('roomData', roomData);
       },
 
@@ -105,6 +110,8 @@ function onClientConnection(socket) {
         socket.emit('roomIsSealed');
       }
     });
+
+    room.updateRoomTimeout(config.newRoomTimeout, config.inactiveRoomTimeout);
   });
 
   /**
@@ -115,7 +122,7 @@ function onClientConnection(socket) {
       if (player === room.owner) {
         room.startGame(function onUpdate(eventName, data) {
           io.to(room.id).emit(eventName, data);
-        }, config.inactiveRoomTimeout);
+        });
       }
     }
   ));
@@ -131,7 +138,7 @@ function onClientConnection(socket) {
         if (playerInfo.role == 'mafia') {
           socket.leave(room.id + '_m');
         }
-      })
+      });
     }
   ));
 
@@ -139,21 +146,50 @@ function onClientConnection(socket) {
    * Голосование
    */
   socket.on('playerVote', assertAck(socket,
-    function onPlayerVote(room, player, data) {}
+    function onPlayerVote(room, player, data) {
+      room.handleVote(player, data, {
+        confirmed: function (data) {
+          socket.broadcast.to(data.roomID).emit('playerVote', data.voteData);
+          // socket.emit('voteConfirmed', data.voteID);
+        },
+        rejected: function (data) {
+          // socket.emit('voteRejected', data.voteID);
+        }
+      });
+    }
   ));
 
   /**
    * Выбор игрока
    */
-  socket.on('playerChice', assertAck(socket,
-    function onPlayerChoice(room, player, data) {}
+  socket.on('playerChoice', assertAck(socket,
+    function onPlayerChoice(room, player, data) {
+      room.handleChoice(player, data, {
+        confirmed: function (data) {
+          // socket.emit('choiceConfirmed', data.choiceID);
+        },
+        rejected: function (data) {
+          // socket.emit('choiceRejected', data.choiceID);
+        }
+      });
+    }
   ));
 
   /**
    * Сообщение чата
    */
   socket.on('chatMessage', assertAck(socket,
-    function onChatMessage(room, player, data) {}
+    function onChatMessage(room, player, data) {
+      room.handleChatMessage(player, data, {
+        confirmed: function (data) {
+          socket.broadcast.to(data.roomID).emit('chatMessage', data.messageData);
+          // socket.emit('messageConfirmed', data.messageID);
+        },
+        rejected: function (data) {
+          // socket.emit('messageRejected', data.messageID);
+        }
+      });
+    }
   ));
 };
 

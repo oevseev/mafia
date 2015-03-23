@@ -56,7 +56,6 @@
           UI.shareLink();
         }
       } else {
-        console.log(roomData);
         if (roomData.role) {
           UI.logMessage("Вы — %s.", getRoleName(roomData.role));
         } else {
@@ -150,7 +149,7 @@
         disconnected: false
       });
 
-      UI.logMessage("Игрок #%d# *%s* присоединяется к игре.",
+      UI.logMessage("Игрок ## *%s* присоединяется к игре.",
         data.playerIndex, data.playerName);
     });
 
@@ -172,7 +171,7 @@
       status.disconnected = true;
       UI.setPlayerInfo(data.playerIndex, status);
 
-      UI.logMessage("Игрок #%d# *%s* выходит из игры.",
+      UI.logMessage("Игрок ## *%s* выходит из игры.",
         data.playerIndex, roomData.playerList[data.playerIndex]);
     });
 
@@ -181,7 +180,10 @@
      */
 
     // Получение сообщения
-    socket.on('chatMessage', function onChatMessage(data) {});
+    socket.on('chatMessage', function onChatMessage(data) {
+      UI.addMessage(data.playerIndex, roomData.playerList[data.playerIndex],
+        data.message);
+    });
 
     // Оповещение о голосовании
     socket.on('playerVote', function onPlayerVote(data) {});
@@ -238,6 +240,8 @@
       // Действия панели навигации
       $('#nav-change-name').click(UI.changePlayerName);
       $('#nav-leave-game').click(UI.leaveGame);
+
+      $('#chat-form').submit(UI.sendMessage);
     },
 
     /**
@@ -256,7 +260,7 @@
             className: 'btn-primary',
           }
         },
-        callback: function(result) {
+        callback: function (result) {
           if (result) {
             userData.playerName = result;
             Cookies.set('playerName', result);
@@ -485,7 +489,7 @@
     /**
      * Добавление информационного сообщения в чат
      */
-    logMessage: function(message) {
+    logMessage: function (message) {
       // Заполнение массива аргументов аргументами из объекта arguments
       var args = [];
       for (var i = 1; i < arguments.length; i++) {
@@ -494,19 +498,37 @@
 
       // Форматирование
       var msgText = message
-        .replace(/#(\d+?)#/g, '<span class="player-index">$1</span>')
+        .replace(/##/g, '<span class="player-index">%d</span>')
         .replace(/\*(.*)\*/, '<strong>$1</strong>');
       msgText = vsprintf(msgText, args);
 
       var $message = $('<li class="log-message">').html(msgText);
 
-      // Окрашивание индексов игроков в соответствующие цвета
+      // Окрашивание индексов игроков в соответствующие цвета и коррекция
+      // их на единицу.
       $message.find('.player-index').each(function () {
-        $(this).addClass('p' + $(this).text());
+        var playerIndex = parseInt($(this).text()) + 1;
+        $(this).addClass('p' + playerIndex);
+        $(this).text(playerIndex);
       });
 
       // Добавление информационного сообщения в чат
       $('#chat-list').append($message);
+    },
+
+    /**
+     * Отправка сообщения
+     */
+    sendMessage: function () {
+      var $messageField = $(this).find('.message-field')[0];
+
+      socket.emit('chatMessage', {
+        message: $messageField.value
+      });
+
+      UI.addMessage(roomData.playerIndex,
+        roomData.playerList[roomData.playerIndex], $messageField.value);
+      $messageField.value = '';
     }
   };
 
