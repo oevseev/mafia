@@ -126,9 +126,9 @@ function Room(id, options) {
       // Текущее состояние игры
       roomData.state = this.game.state;
       // Роль игрока
-      roomData.role = this.game.roles[this.clients[playerID]];
+      roomData.role = this.game.roles[roomData.playerIndex];
       // Игроки, чья роль известна
-      roomData.exposedPlayers = this.game.getExposedPlayers(playerID);
+      roomData.exposedPlayers = this.game.getExposedPlayers(this.clients[playerID]);
       // Количество секунд до следующего таймаута
       // roomData.secondsTillTimeout = room.game.getSecondsTillTimeout();
     }
@@ -146,9 +146,14 @@ function Room(id, options) {
   this.disconnect = function (player, callback) {
     player.disconnected = true;
 
+    if (this.game) {
+      this.game.playerLeft(player);
+    };
+
+    var playerIndex = this.getPlayerIndex(player);
     callback({
-      playerIndex: this.getPlayerIndex(player),
-      role: this.game ? this.game.roles[player] : null
+      playerIndex: playerIndex,
+      role: this.game ? this.game.roles[playerIndex] : null
     });
 
     console.log("[RM] [%s] Игрок %s выходит из комнаты.",
@@ -289,7 +294,7 @@ function Room(id, options) {
    */
   this.handleVote = function (player, data, callbacks) {
     if (data && this.game) {
-      this.game.handleVote(player, data.vote, callbacks);
+      this.game.handleVote(player, data, callbacks);
     } else {
       callbacks.rejected({
         // voteID: data.voteID
@@ -302,7 +307,7 @@ function Room(id, options) {
    */
   this.handleChoice = function (player, data, callbacks) {
     if (data && this.game) {
-      this.game.handleChoice(player, data.choice, callbacks);
+      this.game.handleChoice(player, data, callbacks);
     } else {
       callbacks.rejected({
         // choiceID: data.choiceID

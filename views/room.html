@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverse client-navbar">
+<nav id="client-navbar" class="navbar navbar-inverse">
   <div class="container-fluid">
 
     <a href="/"><img class="nav-logo" src="/img/logo-white.png"/></a>
@@ -8,39 +8,41 @@
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
           aria-expanded="false">Настройки <span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
-          <li><a href="#" id="nav-change-name">Изменить имя...</a></li>
+          <li><a id="nav-change-name" href="#">Изменить имя...</a></li>
         </ul>
       </li>
-      <li><a href="#" id="nav-leave-game">Выход</a></li>
+      <li><a id="nav-leave-game" href="#">Выход</a></li>
     </ul>
 
   </div>
 </nav>
 
-<div class="client-main">
-  <div class="client-left">
-    <ul class="player-list" id="player-list"></ul>
+<div id="client-main">
+
+  <div id="client-left">
+    <ul id="player-list"></ul>
   </div>
 
-  <div class="client-right bg-day">
-    <div class="status-window">
-      <!-- TODO: Наполнить статусное окно контентом -->
+  <div id="client-right" class="bg-day">
+
+    <!-- <div id="status-window"></div> -->
+
+    <div id="chat-window">
+      <ul id="chat-list"></ul>
     </div>
 
-    <div class="chat-window">
-      <ul class="chat-list" id="chat-list"></ul>
-    </div>
-
-    <div class="submit-window">
+    <div id="submit-window">
       <form id="chat-form" action="javascript:void(0);">
         <div class="input-group">
-          <input class="form-control message-field" name="message" type="text"
+          <input id="chat-input" class="form-control" name="message" type="text"
             maxlength="256" placeholder="Сообщение в чат (макс. 256 символов)"/>
           <span class="input-group-btn">
-            <button class="btn btn-default submit-button" type="submit">Отправить</button>
+            <button id="chat-submit" class="btn btn-default" type="submit">Отправить</button>
           </span>
         </div>
       </form>
     </div>
+
   </div>
+
 </div>

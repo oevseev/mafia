@@ -20,7 +20,7 @@ function Game(room, callback) {
   this.state = {
     isDay: false, // Является ли текущая фаза днем
     isVoting: false, // Идет ли голосование
-    move: 0 // Текущий ход
+    turn: 0 // Текущий ход
   };
 
   // Роли игроков
@@ -48,16 +48,14 @@ function Game(room, callback) {
     var civilians = [];
 
     // Изначально все — честные граждане
-    for (var id in this.room.clients) {
-      var player = this.room.clients[id];
-
-      if (player.disconnected) {
+    for (var i = 0; i < this.room.IDs.length; i++) {
+      if (this.room.getPlayerByIndex(i).disconnected) {
         // Добавляем вышедших игроков к списку выбывших
-        this.roles[player] = null;
-        this.elimPlayers.push(player);
+        this.roles[i] = null;
+        this.elimPlayers.push(i);
       } else {
-        this.roles[player] = 'civilian';
-        civilians.push(player);
+        this.roles[i] = 'civilian';
+        civilians.push(i);
       }
     }
 
@@ -67,20 +65,20 @@ function Game(room, callback) {
 
     for (var i = 0; i < maxMafia; i++) {
       // Выбираем случайного игрока и делаем его мафиози
-      var player = civilians[Math.floor(civilians.length * Math.random())];
-      this.roles[player] = 'mafia';
+      var playerIndex = civilians[Math.floor(civilians.length * Math.random())];
+      this.roles[playerIndex] = 'mafia';
 
       // Добавляем игрока к особой подкомнате Socket.IO
-      player.socket.join(this.room.id + '_m');
+      this.room.getPlayerByIndex(playerIndex).socket.join(this.room.id + '_m');
 
       // Удаляем игрока из списка мирных жителей
-      civilians.splice(civilians.indexOf(player), 1);
+      civilians.splice(civilians.indexOf(playerIndex), 1);
     }
 
     // Назначение комиссара
-    if (this.room.options.optionalRoles.detective && civilians) {
-      var player = civilians[Math.floor(civilians.length * Math.random())];
-      this.roles[player] = 'detective';
+    if (this.room.options.optionalRoles.detective && civilians.length) {
+      var playerIndex = civilians[Math.floor(civilians.length * Math.random())];
+      this.roles[playerIndex] = 'detective';
     }
   };
 
@@ -91,7 +89,7 @@ function Game(room, callback) {
     var exposedList = {};
 
     // Добавляем членов мафии
-    if (this.roles[player] == 'mafia') {
+    if (this.roles[this.room.getPlayerIndex(player)] == 'mafia') {
       var mafiaMembers = this.getMafia();
 
       for (var i = 0; i < mafiaMembers.length; i++) {
@@ -102,10 +100,10 @@ function Game(room, callback) {
       }
     }
 
-    // Добавляем игроков, известных детективу
-    if (this.roles[player] == 'detective') {
+    // Добавляем игроков, известных комиссару
+    if (this.roles[this.room.getPlayerIndex(player)] == 'detective') {
       for (var i = 0; i < this.detExpPlayers.length; i++) {
-        exposedList[this.room.getPlayerIndex(this.detExpPlayers[i])] = {
+        exposedList[this.detExpPlayers[i]] = {
           role: this.roles[this.detExpPlayers[i]],
           eliminated: false
         }
@@ -115,7 +113,7 @@ function Game(room, callback) {
     // Добавляем выбывших игроков. Выбывшие игроки добавляются в последнюю
     // очередь, так как они являются подмножеством известных игроков.
     for (var i = 0; i < this.elimPlayers.length; i++) {
-      exposedList[this.room.getPlayerIndex(this.elimPlayers[i])] = {
+      exposedList[this.elimPlayers[i]] = {
         role: this.roles[this.elimPlayers[i]],
         eliminated: true
       };
@@ -129,9 +127,9 @@ function Game(room, callback) {
    */
   this.getMafia = function () {
     var mafiaList = [];
-    for (var player in this.roles) {
-      if (this.roles[player] == 'mafia') {
-        mafiaList.push(this.room.getPlayerIndex(player));
+    for (var playerIndex in this.roles) {
+      if (this.roles[playerIndex] == 'mafia') {
+        mafiaList.push(parseInt(playerIndex));
       }
     }
     return mafiaList;
@@ -151,9 +149,9 @@ function Game(room, callback) {
     // Подсчет числа активных игроков по ролям
     var civilian_count = 0, mafia_count = 0;
 
-    for (var player in this.roles) {
-      if (!(this.elimPlayers.indexOf(player) > -1)) {
-        if (this.roles[player] == 'mafia') {
+    for (var playerIndex in this.roles) {
+      if (!(this.elimPlayers.indexOf(playerIndex) > -1)) {
+        if (this.roles[playerIndex] == 'mafia') {
           mafia_count++;
         } else {
           civilian_count++;
@@ -187,16 +185,15 @@ function Game(room, callback) {
       // Если фаза голосования прошла, то вычисляем результат голосования
       var outvotedPlayer = this.processVoteResult();
       if (outvotedPlayer) {
-        this.elimPlayers.push(this.room.getPlayerByIndex(
-          outvotedPlayer.playerIndex));
+        this.elimPlayers.push(outvotedPlayer.playerIndex);
       }
     } else {
       // Голосование не проводится в двух случаях:
       // - если текущая фаза — ночь знакомства мафии;
       // - если текущая фаза — первый день.
 
-      var isMafiaMeeting = (this.state.move === 0);
-      var isFirstDay = (this.state.move == 1 && this.state.isDay);
+      var isMafiaMeeting = (this.state.turn === 0);
+      var isFirstDay = (this.state.turn == 1 && this.state.isDay);
 
       if (isMafiaMeeting || isFirstDay) {
         // Не включаем голосование в вышеприведенных случаях
@@ -209,7 +206,7 @@ function Game(room, callback) {
 
     // В случае, если начался новый день, увеличиваем счетчик ходов
     if (this.state.isDay && !this.state.isVoting) {
-      this.state.move++;
+      this.state.turn++;
     }
 
     // Выбираем подходящий таймаут (и строку в лог)
@@ -238,14 +235,14 @@ function Game(room, callback) {
       this.nextPhaseTimeout(timeout);
 
       console.log("[GAME] [%s] Ход #%d, наступает %s.",
-        this.room.id, this.state.move, phaseName);
+        this.room.id, this.state.turn, phaseName);
     } else {
       info.winner = winner;
       this.room.game = null; // Удаление игры
 
       // Отсоединяем мафиози от соответствующей комнаты
       for (var player in this.room.clients) {
-        if (this.roles[player] == 'mafia') {
+        if (this.roles[this.room.getPlayerIndex(player)] == 'mafia') {
           player.socket.leave(this.room.id + '_m');
         }
       }
@@ -272,25 +269,34 @@ function Game(room, callback) {
   /**
    * Обработка голосования
    */
-  this.handleVote = function (player, vote, callbacks) {
-    /*
-    // Голосовали ли за игрока
-    var wasVoted = (player in this.votes);
-    // Выбыл ли игрок
-    var isEliminated = (this.elimPlayers.indexOf(player) != -1);
+  this.handleVote = function (player, data, callbacks) {
+    var playerIndex = this.room.getPlayerIndex(player);
 
-    if (!wasVoted && !isEliminated) {
-      var votedPlayer = this.room.getPlayerByIndex(vote);
+    if (this.elimPlayers.indexOf(playerIndex) != -1 || !(this.state.isVoting &&
+      (this.state.isDay || this.roles[playerIndex] == 'mafia'))) {
+      callbacks.rejected({
+        // choiceID: data.choiceID
+      });
+      return;
+    }
 
+    // Если игрок еще не голосовал
+    if (!(playerIndex in this.votes)) {
       // Если игрок, за которого проголосовали, существует
-      if (typeof votedPlayer != 'undefined') {
-        this.votes[player] = votedPlayer;
+      if (typeof this.room.getPlayerByIndex(data.vote) != 'undefined') {
+        this.votes[playerIndex] = data.vote;
 
         console.log("[GAME] [%s] Игрок %s голосует против игрока %s.",
-          this.room.id, player.playerName, votedPlayer.playerName);
+          this.room.id, player.playerName, this.room.getPlayerByIndex(
+            data.vote).playerName);
+
+        return;
       }
     }
-    */
+
+    callbacks.rejected({
+      // choiceID: data.choiceID
+    });
   };
 
   /**
@@ -304,11 +310,11 @@ function Game(room, callback) {
 
     // Подсчет числа голосов против каждого из игроков
     var voteCount = {};
-    for (var player in this.votes) {
-      if (this.votes[player] in voteCount) {
-        voteCount[this.votes[player]]++;
+    for (var playerIndex in this.votes) {
+      if (this.votes[playerIndex] in voteCount) {
+        voteCount[this.votes[playerIndex]]++;
       } else {
-        voteCount[this.votes[player]] = 1;
+        voteCount[this.votes[playerIndex]] = 1;
       }
     }
 
@@ -323,9 +329,9 @@ function Game(room, callback) {
     // игрок, получивший наибольшее число голосов против. В противном —
     // несколько игроков, из которых выбывший будет выбран случайно.
     var candidates = [];
-    for (var player in voteCount) {
-      if (voteCount[player] == maxVotes) {
-        candidates.push(player);
+    for (var playerIndex in voteCount) {
+      if (voteCount[playerIndex] == maxVotes) {
+        candidates.push(playerIndex);
       }
     }
 
@@ -335,12 +341,12 @@ function Game(room, callback) {
     // Выбор случайного кандидата на вылет
     var candidate = candidates[Math.floor(Math.random() * candidates.length)];
 
-    console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.",
-      this.room.id, candidate.playerName, this.roles[candidate]);
+    console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
+      this.room.getPlayerByIndex(candidate).playerName, this.roles[candidate]);
 
     // Объявление кандидата на вылет
     return {
-      playerIndex: this.room.getPlayerIndex(candidate),
+      playerIndex: candidate,
       role: this.roles[candidate]
     };
   };
@@ -348,18 +354,70 @@ function Game(room, callback) {
   /**
    * Обработка пользовательского выбора
    */
-  this.handleChoice = function (player, choice, callbacks) {
+  this.handleChoice = function (player, data, callbacks) {
+    var playerIndex = this.room.getPlayerIndex(player);
+
+    // Нельзя выбирать игроков, если игрок выбыл из игры.
+    // Выбирать игроков можно только ночью в фазу голосования.
+    if (this.elimPlayers.indexOf(playerIndex) != -1 ||
+      (this.state.isDay || !this.state.isVoting)) {
+      callbacks.rejected({
+        // choiceID: data.choiceID
+      });
+      return;
+    }
+
+    // Обработка роли комиссара
+    if (this.roles[playerIndex] == 'detective') {
+
+      // Может ли игрок быть выбран
+      var canBeChosen =
+        (data.choice != playerIndex) && // Нельзя за себя
+        (this.elimPlayers.indexOf(data.choice) == -1) && // Нельзя за убитого
+        (this.detExpPlayers.indexOf(data.choice) == -1); // Нельзя за вскрытого
+
+      // Если да, то отправляем комиссару его роль
+      if (canBeChosen) {
+        this.detExpPlayers.push(data.choice);
+        player.socket.emit('detectiveResponse', {
+          playerIndex: data.choice,
+          role: this.roles[data.choice]
+        });
+        callbacks.confirmed({
+          // choiceID: data.choiceID
+        });
+
+        console.log("[GAME] [%s] Игрок %s выбирает игрока %s.",
+          this.room.id, player.playerName, this.room.getPlayerByIndex(
+            data.choice).playerName);
+
+        return;
+      }
+    }
+
+    // Если ни одно из условий не подошло, сообщаем о неудачном выборе
+    callbacks.rejected({
+      // choiceID: data.choiceID
+    });
   };
 
   /**
    * Получение ID комнаты, в которую может отправлять сообщения игрок
    */
   this.getChatRoomID = function (player) {
-    if (!this.state.isDay && (this.roles[player] == 'mafia')) {
+    if (!this.state.isDay &&
+      (this.roles[this.room.getPlayerIndex(player)] =='mafia')) {
       return (this.room.id + '_m'); // Чат мафии
     } else if (this.state.isDay) {
       return this.room.id; // Общий чат
     }
+  };
+
+  /**
+   * Обработка вышедшего игрока
+   */
+  this.playerLeft = function (player) {
+    this.elimPlayers.push(this.room.getPlayerIndex(player));
   };
 
   /**
@@ -370,22 +428,20 @@ function Game(room, callback) {
     this.assignRoles();
 
     // Сообщаем роли игрокам
-    for (var id in this.room.clients) {
-      var player = this.room.clients[id];
-
+    for (var playerIndex in this.roles) {
       // Инициализируем объект с информацией об игре. Если игрок — мирный
       // житель, то единственное, что ему будет известно — его роль.
       var info = {
-        role: this.roles[player]
+        role: this.roles[playerIndex]
       };
 
       // Если игрок — мафиози, сообщаем ему о его сотоварищах
-      if (this.roles[player] == 'mafia') {
+      if (this.roles[playerIndex] == 'mafia') {
         info.mafiaMembers = this.getMafia();
       }
 
       // Отправляем информацию каждому из игроков по отдельности
-      player.socket.emit('gameStarted', info);
+      this.room.getPlayerByIndex(playerIndex).socket.emit('gameStarted', info);
     }
 
     // Запускаем цепную реакцию!

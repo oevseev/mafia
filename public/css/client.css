@@ -13,7 +13,7 @@ body#client-page {
  * Строка заголовка
  */
 
-.client-navbar {
+#client-navbar {
     position: relative;
     height: 50px;
     z-index: 1;
@@ -25,11 +25,11 @@ body#client-page {
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
-.client-navbar.navbar-collapse.collapse {
+#client-navbar.navbar-collapse.collapse {
     display: block;
 }
 
-.client-navbar .nav-logo {
+.nav-logo {
     width: 128px; height: 50px;
 
     padding: 5px 0;
@@ -39,7 +39,7 @@ body#client-page {
  * Экран игры
  */
 
-.client-main {
+#client-main {
     position: absolute;
     width: 100%;
     height: calc(100% - 50px);
@@ -53,38 +53,46 @@ body#client-page {
  * Левая панель экрана игры
  */
 
-.client-left {
+#client-left {
     width: 320px;
 
     overflow: auto;
 }
 
-.player-list, .player-list > li {
+#player-list, #player-list > li {
     display: block;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.player-list > li {
+#player-list > li {
     padding: 0.75em 1em;
 
     font-size: 12pt;
 }
 
-.player-list > li:nth-child(odd) {
+#player-list.vote  > li:hover {
+    cursor: pointer;
+    background-color: LightGray !important;
+}
+
+#player-list > li:nth-child(odd) {
     background-color: white;
 }
 
-.player-list > li:nth-child(even) {
+#player-list > li:nth-child(even) {
     background-color: WhiteSmoke;
+}
+
+#start-button {
+    border-radius: 0px;
 }
 
 .player-index {
     width: 2em;
 
     display: inline-block;
-    float: left;
 
     color: white;
     background-color: black;
@@ -93,37 +101,59 @@ body#client-page {
     text-align: center;
 }
 
-.player-list .player-name {
+#player-list .player-index {
+    float: left;
+}
+
+#player-list .player-name {
     padding: 0 0.5em;
 }
 
-.player-list .player-name.me {
+.player-name.me {
     font-weight: bold;
 }
 
-.player-list .player-name.disconnected {
+.player-name.disconnected {
     color: silver;
 }
 
-.player-list .player-name.eliminated {
+.player-name.eliminated {
     color: silver;
     text-decoration: line-through;
 }
 
-.player-list .player-aux {
+.player-aux {
     color: silver;
     font-size: 8pt;
 }
 
-.player-list .player-role-icon {
+.player-role-icon {
+    background-size: cover;
+}
+
+#player-list .player-role-icon {
+    width: 24px; height: 24px;
+
     float: right;
+}
+
+.player-role-icon.mafia {
+    background-image: url("/img/icons/mafia.png");
+}
+
+.player-role-icon.civilian {
+    background-image: url("/img/icons/civilian.png");
+}
+
+.player-role-icon.detective {
+    background-image: url("/img/icons/detective.png");
 }
 
 /**
  * Правая панель экрана игры
  */
 
-.client-right {
+#client-right {
     z-index: 0;
 
     background-color: white;
@@ -135,11 +165,7 @@ body#client-page {
     flex-direction: column;
 }
 
-.status-window {
-    height: 128px;
-}
-
-.chat-window {
+#chat-window {
     position: relative;
     width: 100%; height: 100%;
 
@@ -152,15 +178,17 @@ body#client-page {
     background-repeat: no-repeat;
     background-position: left bottom;
 
+    transition: all 0.5s ease;
+
     flex: 1;
 }
 
-.chat-list, .chat-list > li {
+#chat-list, #chat-list > li {
     display: block;
     list-style: none;
 }
 
-.chat-list {
+#chat-list {
     position: absolute;
     bottom: 0;
     width: 100%; max-height: 100%;
@@ -170,82 +198,92 @@ body#client-page {
     padding: 10px;
 }
 
-.chat-list > li {
+#chat-list > li {
     margin: 2px 0px;
 }
 
-.chat-list .player-index {
-    float: none;
+#chat-list .player-index {
     margin: 0 0.125em;
 
     font-size: 10pt;
 }
 
-.chat-list .player-name {
+#chat-list .player-name {
     margin: 0 0.25em;
+
     font-weight: bold;
 }
 
 .log-message {
+    color: DarkGray;
     font-style: italic;
 }
 
-.submit-window {
+.log-message > strong {
+    color: black;
+}
+
+#submit-window {
     padding: 5px;
 }
 
-.bg-day .status-window {
+.bg-day #status-window {
     background-color: WhiteSmoke;
 }
 
-.bg-day .chat-window {
+.bg-day #chat-window {
     border-color: LightGray;
 
     background-color: white;
     background-image: url("/img/chat-bg-day.png");
 }
 
-.bg-day .submit-window {
+.bg-day #submit-window {
     background-color: WhiteSmoke;
 }
 
-.bg-night .status-window {
+.bg-night #status-window {
+    color: LightGray;
     background-color: #484848;
 }
 
-.bg-night .chat-window {
+.bg-night #chat-window {
     border-color: #4c4c4c;
 
+    color: white;
     background-color: #3c3c3c;
     background-image: url("/img/chat-bg-night.png");
 }
 
-.bg-night .submit-window {
+.bg-night #submit-window {
     background-color: #3c3c3c;
 }
 
-.bg-night .message-field {
+.bg-night #chat-input {
     border-color: #404040;
-
-    color: LightGray;
+    
     background-color: black;
 }
 
-.bg-night .submit-button {
+.bg-night #chat-submit {
     border-color: #404040;
 
     color: LightGray;
     background-color: #1c1c1c;
 }
 
-.bg-night .submit-button:hover, 
-.bg-night .submit-button:focus, 
-.bg-night .submit-button:active {
+.bg-night #chat-submit:hover, 
+.bg-night #chat-submit:focus, 
+.bg-night #chat-submit:active {
     background-color: #303030;
 }
 
-.bg-night .submit-button.disabled {
+.bg-night #chat-submit.disabled {
     color: DarkGray;
+}
+
+.bg-night .log-message > strong {
+    color: white;
 }
 
 @media(max-width: 768px) {
@@ -255,28 +293,24 @@ body#client-page {
      * с этим возиться.
      */
 
-    .client-navbar .navbar-nav {
+    #client-navbar .navbar-nav {
         float: left;
         margin-top: 5px;
     }
 
-    .client-navbar .navbar-nav > li {
+    #client-navbar .navbar-nav > li {
         float: left;
     }
 
-    .client-navbar .navbar-nav.navbar-right:last-child {
+    #client-navbar .navbar-nav.navbar-right:last-child {
         margin-right: -15px;
     }
 
-    .client-navbar .navbar-right {
+    #client-navbar .navbar-right {
         float: right;
     }
 
-    /**
-     * Адаптация экрана игры
-     */
-
-    .client-left {
+    #client-left {
         width: 192px;
     }
 }

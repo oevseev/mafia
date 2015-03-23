@@ -16,12 +16,13 @@
    * заполняются те поля, которые имеют сходные наименования.
    */
   var roomData = {
-    playerIndex: null, // Индекс игрока (начиная с 0!)
-    playerList: [], // Список имен игроков в комнате
-    disconnectedPlayers: [], // Вышедшие из комнаты игроки
-    role: null, // Роль игрока
-    state: null, // Состояние игры
-    exposedPlayers: {} // Список игроков, чья роль известна
+    canStartGame: false,        // Может ли игрок начинать игру
+    playerIndex: null,          // Индекс игрока (начиная с 0!)
+    playerList: [],             // Список имен игроков в комнате
+    disconnectedPlayers: [],    // Вышедшие из комнаты игроки
+    role: null,                 // Роль игрока
+    state: null,                // Состояние игры
+    exposedPlayers: {}          // Список игроков, чья роль известна
   };
 
   /**
@@ -49,6 +50,11 @@
         }
       }
       UI.initRoomData(data);
+
+      if (data.canStartGame) {
+        // Если игрок может начать игру, добавляем большую зеленую кнопку
+        UI.addStartButton();
+      }
 
       if (data.isFirstConnection) {
         UI.logMessage("Добро пожаловать в игру!");
@@ -96,12 +102,30 @@
         }
       }
 
+      UI.updateState({
+        isDay: false,
+        isVoting: false,
+        turn: 0
+      });
+
       UI.logMessage("Игра началась. Вы — %s.", getRoleName(data.role));
     });
 
     // Обновление состояния комнаты
     socket.on('update', function onUpdate(data) {
       roomData.state = data.state;
+      UI.updateState(data.state);
+
+      if (data.state.isVoting) {
+        UI.logMessage("Начинается голосование!");
+      } else {
+        if (data.state.isDay) {
+          UI.logMessage("Наступает день, просыпаются мирные жители.");
+        } else {
+          UI.logMessage(
+            "Наступает ночь, мирные жители засыпают. Просыпается мафия.");
+        }
+      }
 
       if (data.outvotedPlayer) {
         var status = {
@@ -111,6 +135,18 @@
 
         roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = status;
         UI.setPlayerInfo(data.outvotedPlayer.playerIndex, status)
+
+        var outcome;
+        if (data.state.isDay) {
+          outcome = "убит";
+        } else {
+          outcome = "посажен в тюрьму";
+        }
+
+        UI.logMessage("Игрок ## *%s* (%s) был %s.",
+          data.outvotedPlayer.playerIndex,
+          roomData.playerList[data.outvotedPlayer.playerIndex],
+          getRoleName(data.outvotedPlayer.role), outcome);
       }
 
       if (data.winner) {
@@ -124,6 +160,10 @@
             role: null,
             eliminated: false
           });
+        }
+
+        if (roomData.canStartGame) {
+          UI.addStartButton();
         }
 
         if (data.winner == 'mafia') {
@@ -183,10 +223,26 @@
     socket.on('chatMessage', function onChatMessage(data) {
       UI.addMessage(data.playerIndex, roomData.playerList[data.playerIndex],
         data.message);
+      UI.scrollChat(false);
     });
 
     // Оповещение о голосовании
-    socket.on('playerVote', function onPlayerVote(data) {});
+    socket.on('playerVote', function onPlayerVote(data) {
+      UI.logMessage("Игрок ## *%s* голосует против игрока ## *s*!",
+        data.playerIndex, roomData.playerList[data.playerIndex].playerName,
+        data.vote, roomData.playerList[data.vote].playerName);
+    });
+
+    // Ответ на выбор комиссара
+    socket.on('detectiveResponse', function onChoiceResponse(data) {
+      roomData.exposedPlayers[data.playerIndex] = {
+        role: data.role,
+        eliminated: false
+      };
+      UI.setPlayerInfo(data.playerIndex, {
+        role: data.role
+      });
+    });
 
     /**
      * Отправка подтверждения на сервер
@@ -341,7 +397,7 @@
      * Окно со ссылкой
      */
     shareLink: function () {
-      var $textField = $('<input class="form-control" id="share-link">')
+      var $textField = $('<input id="share-link" class="form-control">')
         .attr('type', 'text')
         .attr('value', window.location.href)
         .attr('readonly', true);
@@ -363,6 +419,22 @@
       $('#share-link').click(function () {
         $(this).select();
       });
+    },
+
+    /**
+     * Добавляет кнопку начала игры к вершине списка игроков.
+     */
+    addStartButton: function () {
+      var $startButton = $('<button class="btn btn-block btn-success">')
+        .prop('id', 'start-button')
+        .text("Начать игру");
+
+      $startButton.click(function () {
+        socket.emit('startGame');
+        $(this).remove();
+      });
+
+      $('#client-left').prepend($startButton);
     },
 
     /**
@@ -392,6 +464,8 @@
         .append($('<span class="player-aux">'))
         .append($('<div class="player-role-icon">'));
 
+      $playerEntry.click(UI.vote);
+
       if (animate) {
         $('#player-list').append($playerEntry.hide().fadeIn());
       } else {
@@ -406,7 +480,7 @@
      * которого задают информацию, которую необходимо отобразить.
      */
     setPlayerInfo: function (playerIndex, data) {
-      var $playerEntry = $('#player-' + (playerIndex + 1));
+      var $playerEntry = $('#player-' + (parseInt(playerIndex) + 1));
 
       // Флаги состояний
       var $playerName = $playerEntry.find('.player-name');
@@ -442,6 +516,10 @@
      * Инициализация UI информацией о комнате
      */
     initRoomData: function (data) {
+      if (data.state) {
+        UI.updateState(data.state);
+      }
+
       for (var i = 0; i < data.playerList.length; i++) {
         UI.appendPlayer(i, data.playerList[i]);
 
@@ -465,6 +543,43 @@
         }
 
         UI.setPlayerInfo(i, playerInfo);
+      }
+    },
+
+    /**
+     * Обновление статуса игры
+     */
+    updateState: function (state) {
+      $('#player-list').toggleClass('vote', Boolean(state &&
+        state.isVoting && (state.isDay || roomData.role != 'civilian')));
+      $('#chat-submit').prop('disabled', Boolean(state &&
+        (!state.isDay && roomData.role != 'mafia')));
+
+      var bgClass = 'bg-';
+      if (state && state.isDay) {
+        bgClass += 'day';
+      } else {
+        bgClass += 'night';
+      }
+
+      $('#client-right').removeClass().addClass(bgClass);
+    },
+
+    /**
+     * Прокрутка чата вниз
+     */
+    scrollChat: function (force) {
+      var $chatList = $('#chat-list');
+
+      // Проверяем, находится ли дельта прокрутки у нижней части чата
+      var isAtBottom = $chatList.scrollTop() + $chatList.height() >
+        $chatList[0].scrollHeight - 50; // С допустимым отклонением на 50px
+
+      if (isAtBottom || force) {
+        $chatList.stop(true); // Прерываем предыдущую анимацию
+        $chatList.animate({
+          scrollTop: $chatList[0].scrollHeight
+        }, 500);
       }
     },
 
@@ -514,13 +629,14 @@
 
       // Добавление информационного сообщения в чат
       $('#chat-list').append($message);
+      UI.scrollChat(false);
     },
 
     /**
      * Отправка сообщения
      */
     sendMessage: function () {
-      var $messageField = $(this).find('.message-field')[0];
+      var $messageField = $(this).find('[name="message"]')[0];
 
       socket.emit('chatMessage', {
         message: $messageField.value
@@ -529,6 +645,48 @@
       UI.addMessage(roomData.playerIndex,
         roomData.playerList[roomData.playerIndex], $messageField.value);
       $messageField.value = '';
+
+      UI.scrollChat(true);
+    },
+
+    /**
+     * Голосование
+     */
+    vote: function () {
+      // Если родительский элемент кнопки не позволяет голосование, то
+      // прерываем обработку события.
+      if (!$(this).parent().hasClass('vote')) {
+        return;
+      }
+
+      // Из ID кнопки с игроком получаем индекс игрока
+      var selectedPlayer = parseInt($(this).attr('id').replace(/\D/g, '')) - 1;
+
+      // Не даем проголосовать за себя
+      if (selectedPlayer != roomData.playerIndex) {
+        // Не даем проголосовать за убитого игрока
+        if (!(selectedPlayer in roomData.exposedPlayers &&
+          roomData.exposedPlayers[selectedPlayer].eliminated)) {
+
+          $(this).parent().removeClass('vote');
+
+          var actionName;
+          if (!roomData.state.isDay && roomData.role != 'mafia') {
+            socket.emit('playerChoice', {
+              choice: selectedPlayer
+            });
+            actionName = "выбрали";
+          } else {
+            socket.emit('playerVote', {
+              vote: selectedPlayer
+            });
+            actionName = "проголосовали против";
+          }
+
+          UI.logMessage("Вы %s игрока ## *%s*.", actionName,
+            selectedPlayer, roomData.playerList[selectedPlayer]);
+        }
+      }
     }
   };
 

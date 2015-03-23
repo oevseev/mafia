@@ -38,7 +38,7 @@ body#index-page {
  * Содержимое главной страницы
  */
 
-.index-container {
+#index-container {
     position: relative; 
     width: 75%; height: 100%;
 
@@ -46,17 +46,17 @@ body#index-page {
     flex-direction: column;
 }
 
-.index-container > * {
+#index-container > * {
     width: 100%;
 
     margin: 0 auto;
 }
 
-.index-header {
+#index-header {
     margin-bottom: 1em;
 }
 
-.index-content {
+#index-content {
     overflow: auto;
 
     margin-top: 2em;
@@ -65,21 +65,21 @@ body#index-page {
     flex: 1;
 }
 
-.index-content > * {
+#index-content > * {
     margin-top: 0;
     margin-bottom: 0.5em;
 }
 
-.index-content > h1 {
+#index-content > h1 {
     font-size: 36pt;
     font-weight: 800;
 }
 
-.index-content > p {
+#index-content > p {
     font-size: 16pt;
 }
 
-.index-author {
+#index-author {
     overflow: hidden;
     color: DarkGray;
 }
@@ -89,22 +89,22 @@ body#index-page {
  */
 
 @media(min-width: 768px) {
-    .index-footer {
+    #index-footer {
         display: table;
     }
 
-    .index-footer [class*="col-"] {
+    #index-footer [class*="col-"] {
         float: none;
         display: table-cell;
         vertical-align: top;
     }
 
-    .index-footer > * {
+    #index-footer > * {
         height: 100%;
         display: table-cell;
     }
 
-    .index-author .inner {
+    #index-author .inner {
         position: absolute;
         bottom: 0;
     }
@@ -123,23 +123,23 @@ body#index-page {
         font-size: 12pt;
     }
 
-    .index-container {
+    #index-container {
         width: 90%;
     }
 
-    .index-content {
+    #index-content {
         margin-top: 0.5em;
     }
 
-    .index-content > h1 {
+    #index-content > h1 {
         font-size: 20pt;
     }
 
-    .index-content > p {
+    #index-content > p {
         font-size: 12pt;
     }
 
-    .index-author {
+    #index-author {
         margin-top: 1em;
         text-align: center;
     }
