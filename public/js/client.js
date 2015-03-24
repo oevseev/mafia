@@ -641,6 +641,10 @@
     sendMessage: function () {
       var $messageField = $(this).find('[name="message"]')[0];
 
+      if (!$messageField.value) {
+        return;
+      }
+
       socket.emit('chatMessage', {
         message: $messageField.value
       });
