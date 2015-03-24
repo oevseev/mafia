@@ -230,9 +230,9 @@
 
     // Оповещение о голосовании
     socket.on('playerVote', function onPlayerVote(data) {
-      UI.logMessage("Игрок ## *%s* голосует против игрока ## *s*!",
-        data.playerIndex, roomData.playerList[data.playerIndex].playerName,
-        data.vote, roomData.playerList[data.vote].playerName);
+      UI.logMessage("Игрок ## *%s* голосует против игрока ## *%s*!",
+        data.playerIndex, roomData.playerList[data.playerIndex],
+        data.vote, roomData.playerList[data.vote]);
     });
 
     // Ответ на выбор комиссара
