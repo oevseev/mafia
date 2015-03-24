@@ -30,6 +30,11 @@ router.get(/^\/id\/([a-zA-Z0-9]{8})$/, function(req, res) {
   });
 });
 
+// Простой ответ GET-запрос, предназначенный для пинга
+router.get('/status', function(req, res) {
+  res.send("OK");
+});
+
 // Ошибка 404
 router.get('*', function(req, res) {
   res.status(404);
