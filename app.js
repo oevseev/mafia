@@ -1,4 +1,6 @@
-require('newrelic');
+if (process.argv.indexOf('-newrelic') != -1) {
+  require('newrelic');
+}
 
 var fs = require('fs');
 var path = require('path');
