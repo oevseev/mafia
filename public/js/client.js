@@ -553,8 +553,11 @@
      * Обновление статуса игры
      */
     updateState: function (state) {
-      $('#player-list').toggleClass('vote', Boolean(state &&
-        state.isVoting && (state.isDay || roomData.role != 'civilian')));
+      $('#player-list').toggleClass('vote', Boolean(
+        state && state.isVoting &&
+        !(roomData.playerIndex in roomData.exposedPlayers &&
+          roomData.exposedPlayers[roomData.playerIndex].eliminated) &&
+        (state.isDay || roomData.role != 'civilian')));
       $('#chat-submit').prop('disabled', Boolean(state &&
         (!state.isDay && roomData.role != 'mafia')));
 
@@ -617,7 +620,7 @@
       // Форматирование
       var msgText = message
         .replace(/##/g, '<span class="player-index">%d</span>')
-        .replace(/\*(.*?)\*/, '<strong>$1</strong>');
+        .replace(/\*(.*?)\*/g, '<strong>$1</strong>');
       msgText = vsprintf(msgText, args);
 
       var $message = $('<li class="log-message">').html(msgText);

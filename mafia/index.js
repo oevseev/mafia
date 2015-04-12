@@ -102,6 +102,9 @@ function onClientConnection(socket) {
         if (roomData.role == 'mafia') {
           socket.join(room.id + '_m');
         }
+        if (roomData.eliminated) {
+          socket.join(room.id + '_e');
+        }
         socket.emit('roomData', roomData);
       },
 
@@ -137,6 +140,9 @@ function onClientConnection(socket) {
         socket.leave(room.id);
         if (playerInfo.role == 'mafia') {
           socket.leave(room.id + '_m');
+        }
+        if (playerInfo.eliminated) {
+          socket.leave(room.id + '_e');
         }
       });
     }

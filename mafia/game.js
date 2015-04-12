@@ -150,7 +150,7 @@ function Game(room, callback) {
     var civilian_count = 0, mafia_count = 0;
 
     for (var playerIndex in this.roles) {
-      if (!(this.elimPlayers.indexOf(playerIndex) > -1)) {
+      if (!(this.elimPlayers.indexOf(playerIndex) != -1)) {
         if (this.roles[playerIndex] == 'mafia') {
           mafia_count++;
         } else {
@@ -170,6 +170,13 @@ function Game(room, callback) {
       // В противном случае, очевидно, не побеждает никто.
       return null;
     }
+  };
+
+  /**
+   * Выбыл ли игрок
+   */
+  this.isEliminated = function (playerIndex) {
+    return this.elimPlayers.indexOf(playerIndex) != -1;
   };
 
   /**
@@ -244,6 +251,9 @@ function Game(room, callback) {
       for (var player in this.room.clients) {
         if (this.roles[this.room.getPlayerIndex(player)] == 'mafia') {
           player.socket.leave(this.room.id + '_m');
+        }
+        if (this.isEliminated(this.room.getPlayerIndex(player))) {
+          player.socket.leave(this.room.id + '_e');
         }
       }
 
@@ -339,7 +349,7 @@ function Game(room, callback) {
     var candidates = [];
     for (var playerIndex in voteCount) {
       if (voteCount[playerIndex] == maxVotes) {
-        candidates.push(playerIndex);
+        candidates.push(parseInt(playerIndex));
       }
     }
 
@@ -348,6 +358,7 @@ function Game(room, callback) {
 
     // Выбор случайного кандидата на вылет
     var candidate = candidates[Math.floor(Math.random() * candidates.length)];
+    this.room.getPlayerByIndex(candidate).socket.join(this.room.id + '_e');
 
     console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
       this.room.getPlayerByIndex(candidate).playerName, this.roles[candidate]);
@@ -413,7 +424,9 @@ function Game(room, callback) {
    * Получение ID комнаты, в которую может отправлять сообщения игрок
    */
   this.getChatRoomID = function (player) {
-    if (!this.state.isDay &&
+    if (this.isEliminated(this.room.getPlayerIndex(player))) {
+      return (this.room.id + '_e');
+    } else if (!this.state.isDay &&
       (this.roles[this.room.getPlayerIndex(player)] =='mafia')) {
       return (this.room.id + '_m'); // Чат мафии
     } else if (this.state.isDay) {

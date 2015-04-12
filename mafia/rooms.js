@@ -127,6 +127,8 @@ function Room(id, options) {
       roomData.state = this.game.state;
       // Роль игрока
       roomData.role = this.game.roles[roomData.playerIndex];
+      // Выбыл ли игрок
+      roomData.eliminated = this.game.isEliminated(roomData.playerIndex);
       // Игроки, чья роль известна
       roomData.exposedPlayers = this.game.getExposedPlayers(this.clients[playerID]);
       // Количество секунд до следующего таймаута
@@ -184,7 +186,7 @@ function Room(id, options) {
     }
 
     delete rooms[this.id];
-    if (pendingIDs.indexOf(this.id) > -1) {
+    if (pendingIDs.indexOf(this.id) != -1) {
       pendingIDs.splice(pendingIDs.indexOf(this.id), 1);
     }
 

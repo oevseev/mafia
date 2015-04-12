@@ -149,6 +149,14 @@ body#client-page {
     background-image: url("/img/icons/detective.png");
 }
 
+.player-role-icon.doctor:before {
+    content: "доктор";
+}
+
+.player-role-icon.prostitute:before {
+    content: "проститутка";
+}
+
 /**
  * Правая панель экрана игры
  */
