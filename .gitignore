@@ -1,0 +1,7 @@
+.DS_Store
+newrelic_agent.log
+
+node_modules
+
+public/lib
+public/fonts
