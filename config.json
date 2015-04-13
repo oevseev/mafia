@@ -28,6 +28,6 @@
         "voteTimeout": 30,          // Таймаут голосования
 
         // Дополнительные роли
-        "optionalRoles": ["detective"/*, "doctor", "prostitute"*/]
+        "optionalRoles": ["detective", "doctor", "prostitute"]
     }
 }

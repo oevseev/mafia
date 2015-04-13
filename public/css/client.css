@@ -149,12 +149,12 @@ body#client-page {
     background-image: url("/img/icons/detective.png");
 }
 
-.player-role-icon.doctor:before {
-    content: "д";
+.player-role-icon.doctor {
+    background-image: url("/img/icons/doctor.png");
 }
 
-.player-role-icon.prostitute:before {
-    content: "п";
+.player-role-icon.prostitute {
+    background-image: url("/img/icons/prostitute.png");
 }
 
 /**
