@@ -35,7 +35,7 @@ function Game(room, callbacks) {
   this.doctorProtectedPlayer = null;
   this.lastDoctorProtectedPlayer = null;
 
-  // Защищенный проституткой игрок
+  // Защищенный путаной игрок
   this.prostituteProtectedPlayer = null;
   this.lastProstituteProtectedPlayer = null;
 
@@ -203,8 +203,20 @@ function Game(room, callbacks) {
 
       // Если фаза голосования прошла, то вычисляем результат голосования
       var outvotedPlayer = this.processVoteResult();
-      if (outvotedPlayer) {
+      if (outvotedPlayer && outvotedPlayer.role) {
         this.elimPlayers.push(outvotedPlayer.playerIndex);
+        this.callbacks.join(this.room.getPlayerByIndex(candidate), this.room.id + '_e');
+      }
+
+      // Изменение состояния ролей после голосования
+      if (this.state.isDay) {
+        // Обрабатываем состояние роли доктора, если наступает день
+        this.lastDoctorProtectedPlayer = this.doctorProtectedPlayer;
+        this.doctorProtectedPlayer = null;
+      } else {
+        // Обрабатываем состояние роли путаны, если наступает ночь
+        this.lastProstituteProtectedPlayer = this.prostituteProtectedPlayer;
+        this.prostituteProtectedPlayer = null;
       }
     } else {
       // Голосование не проводится в двух случаях:
@@ -294,6 +306,7 @@ function Game(room, callbacks) {
   this.handleVote = function (player, data, callbacks) {
     var playerIndex = this.room.getPlayerIndex(player);
 
+    // Проверка дополнительных условий
     if (this.elimPlayers.indexOf(playerIndex) != -1 || !(this.state.isVoting &&
       (this.state.isDay || this.roles[playerIndex] == 'mafia'))) {
       callbacks.rejected({
@@ -370,15 +383,23 @@ function Game(room, callbacks) {
 
     // Выбор случайного кандидата на вылет
     var candidate = candidates[Math.floor(Math.random() * candidates.length)];
-    this.callbacks.join(this.room.getPlayerByIndex(candidate), this.room.id + '_e');
 
-    console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
-      this.room.getPlayerByIndex(candidate).playerName, this.roles[candidate]);
+    // Проверка защищающих ролей
+    var success = !((this.state.isDay && (candidate == this.doctorProtectedPlayer)) ||
+      (!this.state.isDay && (candidate == this.prostituteProtectedPlayer)));
+
+    if (success) {
+      console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
+        this.room.getPlayerByIndex(candidate).playerName, this.roles[candidate]);
+    } else {
+      console.log("[GAME] [%s] Игрок %s был защищен.", this.room.id,
+        this.room.getPlayerByIndex(candidate).playerName); 
+    }
 
     // Объявление кандидата на вылет
     return {
       playerIndex: candidate,
-      role: this.roles[candidate]
+      role: success ? this.roles[candidate] : null
     };
   };
 
@@ -418,13 +439,39 @@ function Game(room, callbacks) {
           // choiceID: data.choiceID
         });
 
-        console.log("[GAME] [%s] Игрок %s выбирает игрока %s.",
+        console.log("[GAME] [%s] Игрок %s (комиссар) выбирает игрока %s.",
           this.room.id, player.playerName, this.room.getPlayerByIndex(
             data.choice).playerName);
 
         return;
-      } else if (this.roles[playerIndex] == 'doctor') {
-      } else if (this.roles[playerIndex] == 'prostitute') {
+      }
+    }
+
+    // Обработка роли доктора
+    else if (this.roles[playerIndex] == 'doctor') {
+      var canBeChosen = (this.elimPlayers.indexOf(data.choice) == -1) &&
+        (data.choice != this.lastDoctorProtectedPlayer);
+
+      if (canBeChosen) {
+        this.doctorProtectedPlayer = data.choice;
+
+        console.log("[GAME] [%s] Игрок %s (доктор) выбирает игрока %s.",
+          this.room.id, player.playerName, this.room.getPlayerByIndex(
+            data.choice).playerName);
+      }
+    }
+
+    // Обработка роли путаны
+    else if (this.roles[playerIndex] == 'prostitute') {
+      var canBeChosen = (this.elimPlayers.indexOf(data.choice) == -1) &&
+        (data.choice != this.lastProstituteProtectedPlayer);
+
+      if (canBeChosen) {
+        this.prostituteProtectedPlayer = data.choice;
+
+        console.log("[GAME] [%s] Игрок %s (путана) выбирает игрока %s.",
+          this.room.id, player.playerName, this.room.getPlayerByIndex(
+            data.choice).playerName);
       }
     }
 

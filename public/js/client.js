@@ -130,23 +130,31 @@
       if (data.outvotedPlayer) {
         var status = {
           role: data.outvotedPlayer.role,
-          eliminated: true
+          eliminated: false
         };
+
+        if (data.outvotedPlayer.role) {
+          status.eliminated = true;
+
+          var outcome;
+          if (data.state.isDay) {
+            outcome = "убит";
+          } else {
+            outcome = "посажен в тюрьму";
+          }
+
+          UI.logMessage("Игрок ## *%s* (%s) был %s.",
+            data.outvotedPlayer.playerIndex,
+            roomData.playerList[data.outvotedPlayer.playerIndex],
+            getRoleName(data.outvotedPlayer.role), outcome);
+        } else {
+          UI.logMessage("Игрок ## *%s* был защищен!",
+            data.outvotedPlayer.playerIndex,
+            roomData.playerList[data.outvotedPlayer.playerIndex]);
+        }
 
         roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = status;
         UI.setPlayerInfo(data.outvotedPlayer.playerIndex, status)
-
-        var outcome;
-        if (data.state.isDay) {
-          outcome = "убит";
-        } else {
-          outcome = "посажен в тюрьму";
-        }
-
-        UI.logMessage("Игрок ## *%s* (%s) был %s.",
-          data.outvotedPlayer.playerIndex,
-          roomData.playerList[data.outvotedPlayer.playerIndex],
-          getRoleName(data.outvotedPlayer.role), outcome);
       }
 
       if (data.winner) {
@@ -269,7 +277,7 @@
       'mafia': "мафиози",
       'detective': "комиссар",
       'doctor': "доктор",
-      'prostitute': "проститутка"
+      'prostitute': "путана"
     })[role];
   }
 
@@ -304,20 +312,10 @@
       // Отправка сообщения
       $('#chat-form').submit(UI.sendMessage);
 
-      // Выход из игры по закрытии страницы
-      var leaveGame = function () {
-        socket.emit('leaveGame');
-      };
-      $(window).on('unload', leaveGame);
-      $(window).on('pagehide', leaveGame);
-
       // Сообщение перед выходом
       $(window).on('beforeunload', function () {
-        // Если игра началась
-        if (roomData.role) {
-          return "Вы собираетесь выйти из игры. Ваша роль будет раскрыта, " +
-            "и вы больше не сможете подключиться к данной комнате.";
-        }
+        return "Вы собираетесь выйти из игры. Если вы не нажмете «Выход», " +
+          "другие игроки будут считать, что вы до сих пор в комнате!";
       });
     },
 
