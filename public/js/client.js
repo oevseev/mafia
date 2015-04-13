@@ -312,10 +312,20 @@
       // Отправка сообщения
       $('#chat-form').submit(UI.sendMessage);
 
+      // Выход из игры по закрытии страницы
+      var leaveGame = function () {
+        socket.emit('leaveGame');
+      };
+
+      $(window).on('unload', leaveGame);
+      $(window).on('pagehide', leaveGame);
+
       // Сообщение перед выходом
       $(window).on('beforeunload', function () {
-        return "Вы собираетесь выйти из игры. Если вы не нажмете «Выход», " +
-          "другие игроки будут считать, что вы до сих пор в комнате!";
+        if (roomData.role) {
+          return "Вы собираетесь выйти из игры. Ваша роль будет раскрыта, " +
+            "и вы больше не сможете присоединиться к данной комнате.";
+        }
       });
     },
 
