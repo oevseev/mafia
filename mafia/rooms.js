@@ -286,9 +286,9 @@ function Room(id, options) {
   /**
    * Начало игры.
    */
-  this.startGame = function (callback) {
+  this.startGame = function (callbacks) {
     this.seal();
-    gameManager.newGame(this, callback);
+    gameManager.newGame(this, callbacks);
   };
 
   /**

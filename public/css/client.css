@@ -150,11 +150,11 @@ body#client-page {
 }
 
 .player-role-icon.doctor:before {
-    content: "доктор";
+    content: "д";
 }
 
 .player-role-icon.prostitute:before {
-    content: "проститутка";
+    content: "п";
 }
 
 /**

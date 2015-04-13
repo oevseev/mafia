@@ -123,8 +123,19 @@ function onClientConnection(socket) {
   socket.on('startGame', assertAck(socket,
     function onStartGame(room, player) {
       if (player === room.owner) {
-        room.startGame(function onUpdate(eventName, data) {
-          io.to(room.id).emit(eventName, data);
+        room.startGame({
+          join: function (player, roomID) {
+            player.socket.join(roomID);
+          },
+          leave: function (player, roomID) {
+            player.socket.leave(roomID);
+          },
+          broadcast: function (eventName, data) {
+            io.to(room.id).emit(eventName, data);
+          },
+          emit: function (player, eventName, data) {
+            player.socket.emit(eventName, data);
+          }
         });
       }
     }

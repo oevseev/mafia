@@ -267,7 +267,9 @@
     return ({
       'civilian': "мирный житель",
       'mafia': "мафиози",
-      'detective': "комиссар"
+      'detective': "комиссар",
+      'doctor': "доктор",
+      'prostitute': "проститутка"
     })[role];
   }
 

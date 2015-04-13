@@ -1,12 +1,12 @@
 /**
  * Прототип класса игры
  */
-function Game(room, callback) {
+function Game(room, callbacks) {
   // Комната, которой принадлежит игра
   this.room = room;
 
-  // Коллбэк игры
-  this.callback = callback;
+  // Коллбэки игры
+  this.callbacks = callbacks;
 
   // Таймаут и следующая смена фазы
   this.timeout = null;
@@ -27,8 +27,17 @@ function Game(room, callback) {
   this.roles = {};
   // Выбывшие игроки
   this.elimPlayers = [];
+
   // Раскрытые детективом игроки
   this.detExpPlayers = [];
+
+  // Защищенный доктором игрок
+  this.doctorProtectedPlayer = null;
+  this.lastDoctorProtectedPlayer = null;
+
+  // Защищенный проституткой игрок
+  this.prostituteProtectedPlayer = null;
+  this.lastProstituteProtectedPlayer = null;
 
   // Результаты голосования
   this.votes = {};
@@ -69,16 +78,19 @@ function Game(room, callback) {
       this.roles[playerIndex] = 'mafia';
 
       // Добавляем игрока к особой подкомнате Socket.IO
-      this.room.getPlayerByIndex(playerIndex).socket.join(this.room.id + '_m');
+      this.callbacks.join(this.room.getPlayerByIndex(playerIndex), this.room.id + '_m');
 
       // Удаляем игрока из списка мирных жителей
       civilians.splice(civilians.indexOf(playerIndex), 1);
     }
 
-    // Назначение комиссара
-    if (this.room.options.optionalRoles.detective && civilians.length) {
-      var playerIndex = civilians[Math.floor(civilians.length * Math.random())];
-      this.roles[playerIndex] = 'detective';
+    // Назначение дополнительных ролей
+    for (var i = 0; i < this.room.options.optionalRoles.length; i++) {
+      if (civilians.length) {
+        var playerIndex = civilians[Math.floor(civilians.length * Math.random())];
+        this.roles[playerIndex] = this.room.options.optionalRoles[i];
+        civilians.splice(civilians.indexOf(playerIndex), 1);
+      }
     }
   };
 
@@ -250,10 +262,10 @@ function Game(room, callback) {
       // Отсоединяем мафиози от соответствующей комнаты
       for (var player in this.room.clients) {
         if (this.roles[this.room.getPlayerIndex(player)] == 'mafia') {
-          player.socket.leave(this.room.id + '_m');
+          this.callbacks.leave(player, this.room.id + '_m');
         }
         if (this.isEliminated(this.room.getPlayerIndex(player))) {
-          player.socket.leave(this.room.id + '_e');
+          this.callbacks.leave(player, this.room.id + '_e');
         }
       }
 
@@ -262,7 +274,7 @@ function Game(room, callback) {
     }
 
     // Оповещаем игроков об обновлении состояния игры
-    this.callback('update', info);
+    this.callbacks.broadcast('update', info);
   };
 
   /**
@@ -358,7 +370,7 @@ function Game(room, callback) {
 
     // Выбор случайного кандидата на вылет
     var candidate = candidates[Math.floor(Math.random() * candidates.length)];
-    this.room.getPlayerByIndex(candidate).socket.join(this.room.id + '_e');
+    this.callbacks.join(this.room.getPlayerByIndex(candidate), this.room.id + '_e');
 
     console.log("[GAME] [%s] Игрок %s (%s) выбывает из игры.", this.room.id,
       this.room.getPlayerByIndex(candidate).playerName, this.roles[candidate]);
@@ -398,7 +410,7 @@ function Game(room, callback) {
       // Если да, то отправляем комиссару его роль
       if (canBeChosen) {
         this.detExpPlayers.push(data.choice);
-        player.socket.emit('detectiveResponse', {
+        this.callbacks.emit(player, 'detectiveResponse', {
           playerIndex: data.choice,
           role: this.roles[data.choice]
         });
@@ -411,6 +423,8 @@ function Game(room, callback) {
             data.choice).playerName);
 
         return;
+      } else if (this.roles[playerIndex] == 'doctor') {
+      } else if (this.roles[playerIndex] == 'prostitute') {
       }
     }
 
@@ -427,7 +441,7 @@ function Game(room, callback) {
     if (this.isEliminated(this.room.getPlayerIndex(player))) {
       return (this.room.id + '_e');
     } else if (!this.state.isDay &&
-      (this.roles[this.room.getPlayerIndex(player)] =='mafia')) {
+      (this.roles[this.room.getPlayerIndex(player)] == 'mafia')) {
       return (this.room.id + '_m'); // Чат мафии
     } else if (this.state.isDay) {
       return this.room.id; // Общий чат
@@ -462,7 +476,7 @@ function Game(room, callback) {
       }
 
       // Отправляем информацию каждому из игроков по отдельности
-      this.room.getPlayerByIndex(playerIndex).socket.emit('gameStarted', info);
+      this.callbacks.emit(this.room.getPlayerByIndex(playerIndex), 'gameStarted', info);
     }
 
     // Запускаем цепную реакцию!
@@ -475,9 +489,9 @@ function Game(room, callback) {
 /**
  * Создание игры
  */
-exports.newGame = function (room, callback) {
+exports.newGame = function (room, callbacks) {
   if (!room.game) {
-    room.game = new Game(room, callback);
+    room.game = new Game(room, callbacks);
     room.game.start();
   }
 };
