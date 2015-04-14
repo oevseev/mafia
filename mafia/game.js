@@ -162,7 +162,7 @@ function Game(room, callbacks) {
     var civilian_count = 0, mafia_count = 0;
 
     for (var playerIndex in this.roles) {
-      if (!(this.elimPlayers.indexOf(playerIndex) != -1)) {
+      if (!(this.elimPlayers.indexOf(parseInt(playerIndex)) != -1)) {
         if (this.roles[playerIndex] == 'mafia') {
           mafia_count++;
         } else {
