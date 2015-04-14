@@ -205,7 +205,8 @@ function Game(room, callbacks) {
       var outvotedPlayer = this.processVoteResult();
       if (outvotedPlayer && outvotedPlayer.role) {
         this.elimPlayers.push(outvotedPlayer.playerIndex);
-        this.callbacks.join(this.room.getPlayerByIndex(candidate), this.room.id + '_e');
+        this.callbacks.join(this.room.getPlayerByIndex(outvotedPlayer.playerIndex),
+          this.room.id + '_e');
       }
 
       // Изменение состояния ролей после голосования
