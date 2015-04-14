@@ -307,6 +307,7 @@
     setActions: function () {
       // Действия панели навигации
       $('#nav-change-name').click(UI.changePlayerName);
+      $('#nav-help').click(UI.toggleInfoDrawer);
       $('#nav-leave-game').click(UI.leaveGame);
 
       // Отправка сообщения
@@ -314,11 +315,13 @@
 
       // Выход из игры по закрытии страницы
       var leaveGame = function () {
-        socket.emit('leaveGame');
+        if (!UI.exitButtonClicked) {
+          socket.emit('leaveGame');
+        }
       };
 
-      $(window).on('unload', leaveGame);
-      $(window).on('pagehide', leaveGame);
+      // $(window).on('unload', leaveGame);
+      // $(window).on('pagehide', leaveGame);
 
       // Сообщение перед выходом
       $(window).on('beforeunload', function () {
@@ -327,6 +330,22 @@
             "и вы больше не сможете присоединиться к данной комнате.";
         }
       });
+    },
+
+    /**
+     * Открытие/закрытие шторки с информацией
+     */
+    toggleInfoDrawer: function () {
+      var drawer = $('#info-drawer');
+      if (drawer.hasClass("visible")) {
+        drawer.removeClass('visible').animate({
+          'right': -drawer.outerWidth() + 'px'
+        });
+      } else {
+        drawer.addClass('visible').animate({
+          'right': '0px'
+        });
+      }
     },
 
     /**
@@ -400,6 +419,7 @@
             label: "Выйти",
             className: 'btn-danger',
             callback: function () {
+              UI.exitButtonClicked = true;
               socket.emit('leaveGame');
               window.location.replace('/'); // Перенаправление на главную
             }

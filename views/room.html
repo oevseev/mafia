@@ -5,13 +5,23 @@
 
     <ul class="nav navbar-nav navbar-right">
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-          aria-expanded="false">Настройки <span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+          <span class="glyphicon glyphicon-cog"><span class="caret"></span></span>
+        </a>
         <ul class="dropdown-menu" role="menu">
           <li><a id="nav-change-name" href="#">Изменить имя...</a></li>
         </ul>
       </li>
-      <li><a id="nav-leave-game" href="#">Выход</a></li>
+      <li>
+        <a id="nav-help" href="#">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </li>
+      <li>
+        <a id="nav-leave-game" href="#">
+          <span class="glyphicon glyphicon-log-out"></span>
+        </a>
+      </li>
     </ul>
 
   </div>
@@ -25,7 +35,13 @@
 
   <div id="client-right" class="bg-day">
 
-    <!-- <div id="status-window"></div> -->
+    <div id="info-drawer">
+      <span class="drawer-caption">Правила игры</span>
+      <ul id="rules">[ правила игры ]</ul>
+      <div class="drawer-block">[ информация о версии и изменениях ]</div>
+    </div>
+
+    <div id="status-window">[ статусная панель ]</div>
 
     <div id="chat-window">
       <ul id="chat-list"></ul>
