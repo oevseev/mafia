@@ -37,11 +37,21 @@
 
     <div id="info-drawer">
       <span class="drawer-caption">Правила игры</span>
-      <ul id="rules">[ правила игры ]</ul>
-      <div class="drawer-block">[ информация о версии и изменениях ]</div>
+      <ul id="rules"></ul>
+      <div id="news-message" class="drawer-block"></div>
     </div>
 
-    <div id="status-window">[ статусная панель ]</div>
+    <div id="status-window">
+      <div class="status-entry">
+        <div class="status-caption">ход</div>
+        <span id="turn">—</span>
+      </div>
+      <div class="status-entry">
+        <div class="status-caption">фаза игры</div>
+        <span id="phase">—</span>
+      </div>
+      <div id="status-roles"></div>
+    </div>
 
     <div id="chat-window">
       <ul id="chat-list"></ul>

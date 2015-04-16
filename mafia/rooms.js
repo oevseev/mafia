@@ -185,6 +185,10 @@ function Room(id, options) {
       this.game = null;
     }
 
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+
     delete rooms[this.id];
     if (pendingIDs.indexOf(this.id) != -1) {
       pendingIDs.splice(pendingIDs.indexOf(this.id), 1);

@@ -170,7 +170,7 @@
           });
         }
 
-        if (roomData.canStartGame) {
+        if (roomData.playerIndex === 0) {
           UI.addStartButton();
         }
 
@@ -293,6 +293,7 @@
      */
     init: function () {
       UI.setActions();
+      UI.acquireJSONData();
 
       // Прежде, чем инициализировать подключение, необходимо удостовериться
       // в том, что у игрока задано имя.
@@ -333,16 +334,60 @@
     },
 
     /**
+     * Получение информации из JSON-файлов на сервере
+     */
+    acquireJSONData: function () {
+      $.getJSON('/json/rules.json', function (data) {
+        if (data.rules) {
+          // Добавляем список правил в шторку
+          for (var i = 0; i < data.rules.length; i++) {
+            $('#rules').append($('<li>').html(data.rules[i]));
+          }
+
+          $.getJSON('/json/messages.json', function (data) {
+            if (data) {
+              var lastDate = Object.keys(data).sort().reverse()[0];
+              var lastMessage = data[lastDate];
+              
+              var formattedDate = new Date(lastDate).toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric'
+              });
+
+              $('#news-message')
+                .text(lastMessage)
+                .prepend('<br>')
+                .prepend($('<b>').text(formattedDate));
+
+              UI.jsonRequestComplete = true;
+            }
+          });
+        }
+      });
+    },
+
+
+    /**
      * Открытие/закрытие шторки с информацией
      */
     toggleInfoDrawer: function () {
-      var drawer = $('#info-drawer');
-      if (drawer.hasClass("visible")) {
-        drawer.removeClass('visible').animate({
-          'right': -drawer.outerWidth() + 'px'
+      // Если информация с сервера еще не была получена, не обрабатываем
+      // нажатие на кнопку открытия шторки.
+      if (!UI.jsonRequestComplete) {
+        return;
+      }
+
+      var $drawer = $('#info-drawer');
+      if ($drawer.hasClass("visible")) {
+        $drawer.removeClass('visible').animate({
+          'right': -$drawer.outerWidth() + 'px'
         });
       } else {
-        drawer.addClass('visible').animate({
+        $drawer.addClass('visible').animate({
           'right': '0px'
         });
       }
@@ -599,6 +644,14 @@
      * Обновление статуса игры
      */
     updateState: function (state) {
+      if (state) {
+        $('#turn').text(state.turn || "—");
+        $('#phase').text(state.isDay ? "день" : "ночь");
+      } else {
+        $('#turn').text("—");
+        $('#phase').text("—");
+      }
+
       $('#player-list').toggleClass('vote', Boolean(
         state && state.isVoting &&
         !(roomData.playerIndex in roomData.exposedPlayers &&

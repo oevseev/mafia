@@ -30,7 +30,7 @@ body#client-page {
 }
 
 #client-navbar .glyphicon {
-    font-size: 1.4em;
+    transform: scale(1.4);
 }
 
 .nav-logo {
@@ -135,6 +135,12 @@ body#client-page {
     background-size: cover;
 }
 
+#status-window .player-role-icon {
+    width: 32px; height: 32px;
+
+    display: inline-block;
+}
+
 #player-list .player-role-icon {
     width: 24px; height: 24px;
 
@@ -208,8 +214,8 @@ body#client-page {
 
     background-color: #58b957;
     color: white;
-
     border-radius: 5px;
+    text-align: justify;
 }
 
 #rules {
@@ -220,17 +226,50 @@ body#client-page {
 }
 
 #rules > li {
-    padding: 0;
     margin-bottom: 5px;
+    padding: 0;
 
     text-align: justify;
 }
 
 #status-window {
-    height: 64px;
+    height: 48px;
 
-    line-height: 64px;
+    line-height: 32px;
+    padding: 8px;
+
+    font-size: 14pt;
+    font-weight: bold;
     text-align: center;
+
+    display: flex;
+}
+
+#status-window > div {
+    position: relative;
+}
+
+.status-caption {
+    position: absolute;
+    width: 100%;
+
+    margin-top: -5px;
+    line-height: 8pt;
+
+    color: DarkGray;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+.status-entry {
+    margin-top: 5px;
+    width: 72px;
+}
+
+#status-roles {
+    text-align: right;
+
+    flex: 1;
 }
 
 #chat-window {
@@ -295,6 +334,7 @@ body#client-page {
 
 #submit-window {
     z-index: 2;
+
     padding: 5px;
 
     box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.25);
@@ -381,9 +421,5 @@ body#client-page {
 
     #client-navbar .navbar-right {
         float: right;
-    }
-
-    #client-left {
-        width: 192px;
     }
 }
