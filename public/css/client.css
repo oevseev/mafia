@@ -266,6 +266,10 @@ body#client-page {
     width: 72px;
 }
 
+.status-entry-wide {
+    width: 144px;
+}
+
 #status-roles {
     text-align: right;
 

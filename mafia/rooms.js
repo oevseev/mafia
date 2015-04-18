@@ -132,7 +132,7 @@ function Room(id, options) {
       // Игроки, чья роль известна
       roomData.exposedPlayers = this.game.getExposedPlayers(this.clients[playerID]);
       // Количество секунд до следующего таймаута
-      // roomData.secondsTillTimeout = room.game.getSecondsTillTimeout();
+      roomData.secondsTillTimeout = this.game.getSecondsTillTimeout();
     }
 
     // Оповещаем об успешном соединении

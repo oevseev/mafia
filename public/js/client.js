@@ -18,11 +18,93 @@
   var roomData = {
     canStartGame: false,        // Может ли игрок начинать игру
     playerIndex: null,          // Индекс игрока (начиная с 0!)
+    options: {},                // Параметры комнаты
     playerList: [],             // Список имен игроков в комнате
     disconnectedPlayers: [],    // Вышедшие из комнаты игроки
     role: null,                 // Роль игрока
     state: null,                // Состояние игры
     exposedPlayers: {}          // Список игроков, чья роль известна
+  };
+
+  /**
+   * Пространство имен таймера.
+   *
+   * Сюда относятся все переменные и функции, относящиеся к работе
+   * внутриигрового таймера.
+   */
+  var Timer = {
+    // Текущее время на таймере (в секундах)
+    currentTime: null,
+    // Объект таймера
+    timer: null,
+
+    /**
+     * Инициализация таймера в первый раз.
+     *
+     * Если указаны аргументы, задающие время до конца отсчета и текущую фазу,
+     * таймер инициализируется с их учетом.
+     */
+    firstRun: function (secondsTillTimeout, state) {
+      if (secondsTillTimeout) {
+        this.stateChange(state, secondsTillTimeout);
+      } else {
+        // Игра начинается с ночной фазы
+        this.stateChange(state, roomData.options.nightTimeout);
+      }
+    },
+
+    /**
+     * Обновление таймера
+     */
+    updateTimer: function (captionString) {
+      if (--this.currentTime <= 0) {
+        clearInterval(this.timer);
+      }
+
+      var timerString = sprintf("%d:%02d", Math.floor(this.currentTime / 60),
+        this.currentTime % 60);
+      UI.updateTimer(timerString, captionString);
+    },
+
+    /**
+     * Обработка обновления игры
+     */
+    stateChange: function (state, secondsTillTimeout) {
+      clearInterval(this.timer);
+      this.timer = setInterval(this.updateTimer.bind(this), 1000);
+
+      if (secondsTillTimeout) {
+        this.currentTime = secondsTillTimeout;
+      }
+
+      var captionString = "до следующей фазы";
+      if (state) {
+        if (state.isVoting) {
+          if (!secondsTillTimeout) {
+            this.currentTime = roomData.options.voteTimeout;
+          }
+          captionString = "до конца голосования";
+        } else {
+          if (!secondsTillTimeout) {
+            this.currentTime = state.isDay ? roomData.options.dayTimeout :
+              roomData.options.nightTimeout;
+          }
+          if (!(state.turn === 0) && !(state.turn == 1 && state.isDay)) {
+            captionString = "до начала голосования";
+          }
+        }
+      }
+
+      this.updateTimer(captionString);
+    },
+
+    /**
+     * Остановка таймера
+     */
+    stopTimer: function () {
+      clearInterval(this.timer);
+      UI.updateTimer(null);
+    }
   };
 
   /**
@@ -44,6 +126,10 @@
 
     // Получение информации о комнате
     socket.on('roomData', function onRoomData(data) {
+      if (data.secondsTillTimeout) {
+        Timer.firstRun(data.secondsTillTimeout, data.state);
+      }
+
       for (var field in roomData) {
         if (field in data) {
           roomData[field] = data[field];
@@ -85,6 +171,8 @@
 
     // Начало игры
     socket.on('gameStarted', function onGameStarted(data) {
+      Timer.firstRun();
+
       roomData.role = data.role;
       UI.setPlayerInfo(roomData.playerIndex, {
         role: data.role
@@ -181,6 +269,9 @@
         }
 
         UI.updateState(null);
+        Timer.stopTimer();
+      } else {
+        Timer.stateChange(data.state);
       }
     });
 
@@ -316,17 +407,15 @@
 
       // Выход из игры по закрытии страницы
       var leaveGame = function () {
-        if (!UI.exitButtonClicked) {
-          socket.emit('leaveGame');
-        }
+        socket.emit('leaveGame');
       };
 
-      // $(window).on('unload', leaveGame);
-      // $(window).on('pagehide', leaveGame);
+      $(window).on('unload', leaveGame);
+      $(window).on('pagehide', leaveGame);
 
       // Сообщение перед выходом
       $(window).on('beforeunload', function () {
-        if (roomData.role) {
+        if (roomData.role && !UI.exitButtonClicked) {
           return "Вы собираетесь выйти из игры. Ваша роль будет раскрыта, " +
             "и вы больше не сможете присоединиться к данной комнате.";
         }
@@ -668,6 +757,22 @@
       }
 
       $('#client-right').removeClass().addClass(bgClass);
+    },
+
+    /**
+     * Обновление таймера
+     */
+    updateTimer: function (time, caption) {
+      if (typeof caption != undefined) {
+        $('#timer-caption').text(caption);
+      }
+
+      if (time) {
+        $('#timer').text(time);
+      } else {
+        $('#timer-caption').text("до следующей фазы");
+        $('#timer').text("—");
+      }
     },
 
     /**
