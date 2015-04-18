@@ -135,8 +135,15 @@ body#client-page {
     background-size: cover;
 }
 
+.player-role-icon.eliminated {
+    opacity: 0.2; 
+}
+
 #status-window .player-role-icon {
     width: 32px; height: 32px;
+
+    border-radius: 25%;
+    margin-left: 3px;
 
     display: inline-block;
 }
@@ -145,6 +152,11 @@ body#client-page {
     width: 24px; height: 24px;
 
     float: right;
+}
+
+.bg-night #status-window .player-role-icon {
+    background-color: DarkGray;
+    border-radius: 20%;
 }
 
 .player-role-icon.mafia {
@@ -241,6 +253,8 @@ body#client-page {
     font-size: 14pt;
     font-weight: bold;
     text-align: center;
+
+    transition: all 0.5s ease;
 
     display: flex;
 }
@@ -342,6 +356,8 @@ body#client-page {
     padding: 5px;
 
     box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.25);
+
+    transition: all 0.5s ease;
 }
 
 .bg-day #status-window {

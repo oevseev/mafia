@@ -190,6 +190,8 @@
         }
       }
 
+      UI.initRolePanel();
+
       UI.updateState({
         isDay: false,
         isVoting: false,
@@ -235,6 +237,8 @@
             data.outvotedPlayer.playerIndex,
             roomData.playerList[data.outvotedPlayer.playerIndex],
             getRoleName(data.outvotedPlayer.role), outcome);
+
+          UI.eliminateRole(data.outvotedPlayer.role);
         } else {
           UI.logMessage("Игрок ## *%s* был защищен!",
             data.outvotedPlayer.playerIndex,
@@ -269,6 +273,8 @@
         }
 
         UI.updateState(null);
+        UI.clearRolePanel();
+
         Timer.stopTimer();
       } else {
         Timer.stateChange(data.state);
@@ -305,6 +311,7 @@
           eliminated: true
         };
         roomData.exposedPlayers[data.playerIndex] = status;
+        UI.eliminateRole(data.role);
       }
 
       // Вдобавок к информации, записываемой в exposedPlayers, мы сообщаем
@@ -701,6 +708,14 @@
     initRoomData: function (data) {
       if (data.state) {
         UI.updateState(data.state);
+
+        // Иницализация панели с ролями
+        UI.initRolePanel();
+        for (var playerIndex in data.exposedPlayers) {
+          if (data.exposedPlayers[playerIndex].eliminated) {
+            UI.eliminateRole(data.exposedPlayers[playerIndex].role);
+          }
+        }
       }
 
       for (var i = 0; i < data.playerList.length; i++) {
@@ -773,6 +788,56 @@
         $('#timer-caption').text("до следующей фазы");
         $('#timer').text("—");
       }
+    },
+
+    /**
+     * Инициализация панели ролей
+     */
+    initRolePanel: function () {
+      UI.clearRolePanel();
+      var $rolePanel = $('#status-roles');
+
+      // Сначала инициализируем пустых игроков
+      for (var i = 0; i < roomData.playerList.length; i++) {
+        $rolePanel.append($('<div class="player-role-icon">'));
+      }
+
+      var $rolePanelChildren = $rolePanel.children();
+
+      // Затем отмечаем мафиози
+      var maxMafia = Math.floor(roomData.playerList.length / roomData.
+        options.mafiaCoeff);
+      for (var i = 0; i < maxMafia; i++) {
+        $rolePanelChildren.eq(i).addClass('mafia');
+      }
+
+      $rolePanelChildren = $rolePanelChildren.slice(maxMafia);
+
+      // Затем — дополнительные роли
+      var maxOptRoles = Math.min(roomData.options.optionalRoles.length,
+        $rolePanelChildren.length)
+      for (var i = 0; i < maxOptRoles; i++) {
+        $rolePanelChildren.eq(i).addClass(roomData.options.optionalRoles[i]);
+      }
+
+      // Оставшимся присваиваем роль гражданских
+      $rolePanelChildren.slice(maxOptRoles).addClass('civilian');
+    },
+
+    /**
+     * Очистка панели ролей
+     */
+    clearRolePanel: function () {
+      $('#status-roles').html('');
+    },
+
+    /**
+     * Пометка одной из ролей как выбывшей
+     */
+    eliminateRole: function (role) {
+      $('#status-roles .player-role-icon:not(.eliminated).' + role)
+        .eq(0)
+        .addClass('eliminated');
     },
 
     /**
