@@ -151,7 +151,13 @@ function Game(room, callbacks) {
    * Получение количества секунд до следующего таймаута
    */
   this.getSecondsTillTimeout = function () {
-    return undefined;
+    if (this.nextPhaseChange) {
+      // Cчитаем разницу в миллисекундах
+      var diff = this.nextPhaseChange.getTime() - new Date().getTime();
+      
+      // Возвращаем разницу в секундах
+      return Math.round(diff / 1000);
+    }
   };
 
   /**

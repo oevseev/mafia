@@ -38,6 +38,7 @@
     <div id="info-drawer">
       <span class="drawer-caption">Правила игры</span>
       <ul id="rules"></ul>
+      <span class="drawer-caption">Сводки</span>
       <div id="news-message" class="drawer-block"></div>
     </div>
 
@@ -50,6 +51,10 @@
         <div class="status-caption">фаза игры</div>
         <span id="phase">—</span>
       </div>
+      <div class="status-entry status-entry-wide">
+        <div id="timer-caption" class="status-caption">до следующей фазы</div>
+        <span id="timer">—</span>
+      </div>
       <div id="status-roles"></div>
     </div>
 
@@ -61,7 +66,7 @@
       <form id="chat-form" action="javascript:void(0);">
         <div class="input-group">
           <input id="chat-input" class="form-control" name="message" type="text"
-            maxlength="256" placeholder="Сообщение в чат (макс. 256 символов)"/>
+            autocomplete="off" maxlength="256" placeholder="Сообщение в чат (макс. 256 символов)"/>
           <span class="input-group-btn">
             <button id="chat-submit" class="btn btn-default" type="submit">Отправить</button>
           </span>
