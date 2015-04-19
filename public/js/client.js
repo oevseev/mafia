@@ -414,7 +414,9 @@
 
       // Выход из игры по закрытии страницы
       var leaveGame = function () {
-        socket.emit('leaveGame');
+        if (!UI.exitButtonClicked) {
+          socket.emit('leaveGame');
+        }
       };
 
       $(window).on('unload', leaveGame);
