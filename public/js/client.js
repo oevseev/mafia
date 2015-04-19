@@ -218,13 +218,13 @@
       }
 
       if (data.outvotedPlayer) {
-        var status = {
-          role: data.outvotedPlayer.role,
-          eliminated: false
-        };
-
         if (data.outvotedPlayer.role) {
-          status.eliminated = true;
+          var status = {
+            role: data.outvotedPlayer.role,
+            eliminated: true
+          };
+
+          roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = status;
 
           var outcome;
           if (data.state.isDay) {
@@ -238,15 +238,13 @@
             roomData.playerList[data.outvotedPlayer.playerIndex],
             getRoleName(data.outvotedPlayer.role), outcome);
 
+          UI.setPlayerInfo(data.outvotedPlayer.playerIndex, status);
           UI.eliminateRole(data.outvotedPlayer.role);
         } else {
           UI.logMessage("Игрок ## *%s* был защищен!",
             data.outvotedPlayer.playerIndex,
             roomData.playerList[data.outvotedPlayer.playerIndex]);
-        }
-
-        roomData.exposedPlayers[data.outvotedPlayer.playerIndex] = status;
-        UI.setPlayerInfo(data.outvotedPlayer.playerIndex, status)
+        }     
       }
 
       if (data.winner) {
@@ -305,19 +303,26 @@
       var status = {};
 
       if (data.role) {
+        if (!((data.playerIndex in roomData.exposedPlayers) &&
+          roomData.exposedPlayers[data.playerIndex].eliminated)) {
+          UI.eliminateRole(data.role);
+        }
+
         // Раскрываем роль игрока и делаем его убитым
         status = {
           role: data.role,
           eliminated: true
         };
         roomData.exposedPlayers[data.playerIndex] = status;
-        UI.eliminateRole(data.role);
       }
 
       // Вдобавок к информации, записываемой в exposedPlayers, мы сообщаем
       // о том, что игрок покинул комнату.
       status.disconnected = true;
       UI.setPlayerInfo(data.playerIndex, status);
+
+      // Записываем игрока в список вышедших
+      roomData.disconnectedPlayers.push(data.playerIndex);
 
       UI.logMessage("Игрок ## *%s* выходит из игры.",
         data.playerIndex, roomData.playerList[data.playerIndex]);
@@ -799,8 +804,17 @@
       UI.clearRolePanel();
       var $rolePanel = $('#status-roles');
 
+      // Подсчитываем число игроков в игре
+      var maxPlayers = roomData.playerList.length - roomData.
+        disconnectedPlayers.length;
+      for (var i = 0; i < roomData.disconnectedPlayers.length; i++) {
+        if (roomData.disconnectedPlayers[i] in roomData.exposedPlayers) {
+          maxPlayers++;
+        }
+      }
+
       // Сначала инициализируем пустых игроков
-      for (var i = 0; i < roomData.playerList.length; i++) {
+      for (var i = 0; i < maxPlayers; i++) {
         $rolePanel.append($('<div class="player-role-icon">'));
       }
 
