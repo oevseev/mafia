@@ -2,6 +2,4 @@
 newrelic_agent.log
 
 node_modules
-
-public/lib
-public/fonts
+public

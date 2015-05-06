@@ -6,16 +6,16 @@ block vars
   - var body_id = "client-page"
 
 block includes
-  link(href="/css/client.css", rel="stylesheet")
-  link(href="/css/players.css", rel="stylesheet")
+  link(href="http://s.mafia.x3n.me/css/client.css", rel="stylesheet")
+  link(href="http://s.mafia.x3n.me/css/players.css", rel="stylesheet")
 
-  script(src="/lib/jquery/dist/jquery.min.js")
-  script(src="/lib/sprintf/dist/sprintf.min.js")
+  script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js")
+  script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
 
-  script(src="/lib/bootstrap/dist/js/bootstrap.min.js")
-  script(src="/lib/bootbox/bootbox.js")
+  script(src="https://cdn.rawgit.com/makeusabrew/bootbox/master/bootbox.js")
+  script(src="https://cdn.rawgit.com/ScottHamper/Cookies/master/dist/cookies.min.js")
+  script(src="https://cdn.rawgit.com/alexei/sprintf.js/master/dist/sprintf.min.js")
 
-  script(src="/lib/cookies-js/dist/cookies.min.js")
   script(src="/socket.io/socket.io.js")
 
 block content
@@ -28,4 +28,4 @@ block content
       playerName: Cookies('playerName')
     };
 
-  script(src="/js/client.js")
+  script(src="http://s.mafia.x3n.me/js/client.js")
