@@ -31,7 +31,7 @@ if (config.debug) {
   app.use(morgan('short'));
 }
 app.use(cookieParser());
-app.use(serveFavicon(path.join(__dirname, 'public/favicon.ico')));
+// app.use(serveFavicon(path.join(__dirname, 'public/favicon.ico')));
 // app.use(serveStatic('public', {
 //   'index': ['index.html', 'index.htm']
 // }));
