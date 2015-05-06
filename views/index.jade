@@ -1,0 +1,17 @@
+extends base
+
+block vars
+  - var title = "Мафия — главная страница"
+  - var full_width = false
+  - var body_id = "index-page"
+
+block includes
+  script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js")
+  script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+  
+  script(src="/socket.io/socket.io.js")
+
+block content
+  include index.html
+
+  script(src="http://s.mafia.x3n.me/js/main-page.js")

@@ -9,6 +9,11 @@ var mafia = require('./mafia');
 // Создаем объект роутера, который будет экспортироваться
 var router = express.Router();
 
+// Главная страница
+router.get('/', function(req, res) {
+  res.render('index');
+});
+
 // Комната с выбранным ID
 router.get(/^\/id\/([a-zA-Z0-9]{8})$/, function(req, res) {
   var roomID = req.params[0];
