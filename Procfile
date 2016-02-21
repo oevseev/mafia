@@ -1,1 +1,1 @@
-web: node app.js -newrelic
+web: node app.js
