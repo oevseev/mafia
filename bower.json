@@ -2,7 +2,7 @@
   "name": "mafia",
   "version": "1.0.0",
   "description": "Популярная игра «Мафия»",
-  "author": "Oleg Evseev <ixen.eoa@me.com>",
+  "author": "Oleg Evseev",
   "homepage": "http://mafia.x3n.me/",
   "private": true,
   "main": "app.js",
