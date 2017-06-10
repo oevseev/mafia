@@ -338,7 +338,7 @@ function Room(id, options) {
           }
         });
 
-        console.log("[CHAT] %s: %s", player.playerName, data.message);
+        console.log("[CHAT] [%s] %s: %s", roomID, player.playerName, data.message);
       } else {
         callbacks.rejected({
           // messageID: data.messageID
