@@ -9,8 +9,8 @@ var express = require('express');
 var SocketIO = require('socket.io');
 var cookieParser = require('cookie-parser');
 var morgan = require('morgan');
-var serveStatic = require('serve-static');
-var serveFavicon = require('serve-favicon');
+//var serveStatic = require('serve-static');
+//var serveFavicon = require('serve-favicon');
 
 // Локальные зависимости
 var mafia = require('./mafia');
